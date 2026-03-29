@@ -6,12 +6,14 @@ import SignInPage from "./pages/SignInPage";
 import DashboardPage from "./pages/DashboardPage";
 import RoleManagementPage from "./pages/RoleManagementPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
+import ResourcesPage from "./pages/ResourcesPage";
 
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/resources" element={<ResourcesPage />} />
         <Route
           path="/signin"
           element={

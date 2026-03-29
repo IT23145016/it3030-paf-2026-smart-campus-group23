@@ -41,6 +41,25 @@ button {
   cursor: pointer;
 }
 
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid rgba(16, 33, 29, 0.12);
+  border-radius: 16px;
+  padding: 0.8rem 0.95rem;
+  font: inherit;
+  color: inherit;
+  background: rgba(255, 252, 246, 0.92);
+}
+
+label {
+  display: grid;
+  gap: 0.45rem;
+  font-weight: 600;
+  color: #20312d;
+}
+
 h1,
 h2,
 h3,
@@ -197,7 +216,7 @@ p {
 
 .shell {
   display: grid;
-  grid-template-columns: 280px 1fr 360px;
+  grid-template-columns: 280px minmax(0, 1fr);
   gap: 1.25rem;
   min-height: 100vh;
   padding: 1.25rem;
@@ -383,6 +402,114 @@ p {
   gap: 0.5rem;
 }
 
+.filter-grid,
+.resource-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.filter-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.resource-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.filter-actions,
+.form-actions,
+.card-actions,
+.resource-meta,
+.amenity-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.full-span {
+  grid-column: 1 / -1;
+}
+
+.secondary-button {
+  background: #f3e5d0;
+  color: #10211d;
+  border: 1px solid rgba(16, 33, 29, 0.1);
+}
+
+.resource-grid,
+.window-list,
+.schedule-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.resource-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.resource-card {
+  background: var(--card);
+  border: 1px solid rgba(16, 33, 29, 0.08);
+  border-radius: 24px;
+  padding: 1.25rem;
+  box-shadow: 0 18px 42px rgba(16, 33, 29, 0.08);
+}
+
+.resource-card-head,
+.window-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.resource-copy {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.resource-meta span,
+.amenity-list span,
+.schedule-list div {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #f3e5d0;
+}
+
+.schedule-list div {
+  justify-content: space-between;
+  border-radius: 16px;
+  background: #f8f1e7;
+  padding: 0.7rem 0.85rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.status-pill.active {
+  background: #dfeee2;
+  color: #1f5e35;
+}
+
+.status-pill.maintenance {
+  background: #f7e2b6;
+  color: #7a4b00;
+}
+
+.status-pill.out_of_service {
+  background: #f4d4d4;
+  color: #8f2e2e;
+}
+
 .role-pill {
   display: inline-flex;
   align-items: center;
@@ -433,7 +560,16 @@ td {
   .feature-strip,
   .metric-grid,
   .insight-grid,
-  .showcase-grid {
+  .showcase-grid,
+  .resource-grid,
+  .filter-grid,
+  .resource-form {
     grid-template-columns: 1fr;
+  }
+
+  .window-row,
+  .resource-card-head {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

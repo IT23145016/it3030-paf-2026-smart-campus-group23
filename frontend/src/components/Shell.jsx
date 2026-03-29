@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import NotificationPanel from "./NotificationPanel";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Shell({ title, children }) {
@@ -22,6 +21,7 @@ export default function Shell({ title, children }) {
         <p className="muted">A focused operations layer for alerts, access, and accountability.</p>
         <nav className="nav">
           <Link to="/dashboard">Dashboard</Link>
+          <Link to="/resources">Facilities Catalogue</Link>
           <Link to="/admin/roles">Role Management</Link>
         </nav>
         {user ? (
@@ -54,7 +54,6 @@ export default function Shell({ title, children }) {
         </div>
       </aside>
       <main className="content">{children}</main>
-      <NotificationPanel />
     </div>
   );
 }

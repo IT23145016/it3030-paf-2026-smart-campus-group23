@@ -15,6 +15,11 @@ export default function DashboardPage() {
 
         <div className="metric-grid">
           <article className="metric-card">
+            <span>Catalogue coverage</span>
+            <strong>Spaces mapped</strong>
+            <small>Facilities metadata is ready for searching and future booking rules.</small>
+          </article>
+          <article className="metric-card">
             <span>Approval workflow</span>
             <strong>Pending to clear</strong>
             <small>Booking outcomes can feed this alert stream immediately.</small>
@@ -24,29 +29,24 @@ export default function DashboardPage() {
             <strong>Technician ready</strong>
             <small>Status changes and comments are built to notify affected users.</small>
           </article>
-          <article className="metric-card">
-            <span>Role governance</span>
-            <strong>Admin controlled</strong>
-            <small>Permission changes are tracked and surfaced to the user.</small>
-          </article>
         </div>
       </section>
 
       <section className="insight-grid">
         <article className="info-card">
+          <p className="eyebrow">Facilities foundation</p>
+          <h3>Resources are now first-class data, not static text.</h3>
+          <p>
+            Lecture halls, labs, meeting rooms, and equipment can be stored in MongoDB with searchable
+            metadata, availability windows, and status for booking readiness.
+          </p>
+        </article>
+        <article className="info-card">
           <p className="eyebrow">What this module owns</p>
           <h3>Notifications that feel immediate, not buried.</h3>
           <p>
             Booking approval events, ticket workflow changes, and staff comments can all feed the same inbox so
-            users don’t need to chase updates across separate screens.
-          </p>
-        </article>
-        <article className="info-card">
-          <p className="eyebrow">Access design</p>
-          <h3>Google sign-in plus scoped actions.</h3>
-          <p>
-            Users get a clean sign-in flow while admins retain explicit control over who can manage roles and
-            platform-level operations.
+            users do not need to chase updates across separate screens.
           </p>
         </article>
       </section>
