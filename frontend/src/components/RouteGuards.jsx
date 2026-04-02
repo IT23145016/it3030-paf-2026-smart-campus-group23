@@ -28,3 +28,21 @@ export function PublicOnlyRoute({ children }) {
 
   return children;
 }
+
+export function AdminRoute({ children }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="fullscreen-state">Preparing your workspace...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/signin" replace />;
+  }
+
+  if (!user.roles?.includes("ADMIN")) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}

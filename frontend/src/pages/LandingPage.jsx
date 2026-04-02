@@ -1,22 +1,11 @@
 import { Link } from "react-router-dom";
+import SiteFooter from "../components/SiteFooter";
+import SiteHeader from "../components/SiteHeader";
 
 export default function LandingPage() {
   return (
     <div className="landing-page">
-      <header className="landing-nav">
-        <div>
-          <p className="eyebrow">Smart Campus Operations Hub</p>
-          <strong>Campus Command Center</strong>
-        </div>
-        <div className="landing-actions">
-          <Link className="ghost-link" to="/signin">
-            Sign In
-          </Link>
-          <Link className="solid-link" to="/signin">
-            Open Platform
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="landing-hero">
         <section className="landing-copy">
@@ -27,6 +16,9 @@ export default function LandingPage() {
             role-based oversight so staff can act quickly without losing accountability.
           </p>
           <div className="landing-actions">
+            <Link className="ghost-link" to="/resources">
+              Explore Facilities
+            </Link>
             <Link className="solid-link" to="/signin">
               Continue to Sign In
             </Link>
@@ -65,14 +57,14 @@ export default function LandingPage() {
 
       <section className="feature-strip" id="highlights">
         <article className="feature-card">
+          <p className="eyebrow">Facilities</p>
+          <h2>Catalogue rooms, labs, and equipment clearly.</h2>
+          <p>Search by type, location, capacity, and operational status before any booking request is made.</p>
+        </article>
+        <article className="feature-card">
           <p className="eyebrow">Bookings</p>
           <h2>Prevent clashes before they happen.</h2>
           <p>Support clear approval workflows for lecture halls, labs, meeting rooms, and assets.</p>
-        </article>
-        <article className="feature-card">
-          <p className="eyebrow">Maintenance</p>
-          <h2>Track incidents with evidence and ownership.</h2>
-          <p>Keep fault reports moving with technician assignment, comments, and resolution notes.</p>
         </article>
         <article className="feature-card">
           <p className="eyebrow">Governance</p>
@@ -80,6 +72,8 @@ export default function LandingPage() {
           <p>Notify the right people, control roles centrally, and keep every status change visible.</p>
         </article>
       </section>
+
+      <SiteFooter />
     </div>
   );
 }
