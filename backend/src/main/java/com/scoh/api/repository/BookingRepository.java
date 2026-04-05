@@ -1,0 +1,17 @@
+package com.scoh.api.repository;
+
+import com.scoh.api.domain.Booking;
+import com.scoh.api.domain.BookingStatus;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Repository
+public interface BookingRepository extends MongoRepository<Booking, String> {
+  List<Booking> findByUserId(String userId);
+  List<Booking> findByResourceId(String resourceId);
+  List<Booking> findByStatus(BookingStatus status);
+  List<Booking> findByResourceIdAndStatus(String resourceId, BookingStatus status);
+  List<Booking> findByResourceIdAndStartTimeBeforeAndEndTimeAfter(String resourceId, LocalDateTime endTime, LocalDateTime startTime);
+}

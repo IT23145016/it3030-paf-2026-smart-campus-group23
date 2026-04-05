@@ -60,5 +60,11 @@ export const api = {
     request(`/api/admin/users/${userId}/roles`, {
       method: "PUT",
       body: JSON.stringify({ roles })
-    })
+    }),
+  createBooking: (payload) =>
+    request("/api/bookings", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    }),
+  getUserBookings: () => request("/api/bookings")
 };

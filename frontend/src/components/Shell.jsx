@@ -91,6 +91,11 @@ export default function Shell({ title, children }) {
           <Link to="/resources" onClick={closeMenu}>
             Facilities Catalogue
           </Link>
+          {user ? (
+            <Link to="/bookings" onClick={closeMenu}>
+              My Bookings
+            </Link>
+          ) : null}
           {user?.roles?.includes("ADMIN") ? (
             <>
               <Link to="/admin/resources" onClick={closeMenu}>
