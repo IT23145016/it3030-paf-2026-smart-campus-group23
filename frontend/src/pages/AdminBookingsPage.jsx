@@ -6,19 +6,25 @@ export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filter, setFilter] = useState("all"); // all, pending, approved, rejected, cancelled
+  const [filters, setFilters] = useState({
+    status: "all",
+    userId: "",
+    resourceId: "",
+    startDate: "",
+    endDate: ""
+  });
   const [updatingBooking, setUpdatingBooking] = useState(null);
   const [updateForm, setUpdateForm] = useState({ status: "", adminNotes: "" });
 
   useEffect(() => {
-    loadBookings();
+    loadBookings(filters);
   }, []);
 
-  async function loadBookings() {
+  async function loadBookings(nextFilters = filters) {
     setLoading(true);
     setError("");
     try {
-      const data = await api.getAllBookings();
+      const data = await api.getAllBookings(nextFilters);
       setBookings(data);
     } catch (err) {
       setError(err.message);
@@ -28,8 +34,7 @@ export default function AdminBookingsPage() {
   }
 
   function getFilteredBookings() {
-    if (filter === "all") return bookings;
-    return bookings.filter(booking => booking.status?.toLowerCase() === filter);
+    return bookings;
   }
 
   function openStatusUpdate(booking) {
@@ -48,11 +53,21 @@ export default function AdminBookingsPage() {
 
     try {
       await api.updateBookingStatus(updatingBooking.id, updateForm);
-      await loadBookings();
+      await loadBookings(filters);
       closeStatusUpdate();
     } catch (err) {
       setError(err.message);
     }
+  }
+
+  function handleFilterChange(event) {
+    const { name, value } = event.target;
+    setFilters((current) => ({ ...current, [name]: value }));
+  }
+
+  function applyFilters(event) {
+    event.preventDefault();
+    loadBookings(filters);
   }
 
   function getStatusOptions(currentStatus) {
@@ -77,23 +92,53 @@ export default function AdminBookingsPage() {
             <p className="eyebrow">Admin Panel</p>
             <h3>Manage all booking requests.</h3>
           </div>
-          <button type="button" className="secondary-button toolbar-button" onClick={loadBookings}>
+          <button type="button" className="secondary-button toolbar-button" onClick={() => loadBookings(filters)}>
             Refresh
           </button>
         </div>
 
-        <div className="filter-bar">
+        <form className="filter-grid" onSubmit={applyFilters}>
           <label>
-            Filter by status:
-            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-              <option value="all">All Bookings</option>
+            Status
+            <select name="status" value={filters.status} onChange={handleFilterChange}>
+              <option value="all">All bookings</option>
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
               <option value="cancelled">Cancelled</option>
             </select>
           </label>
-        </div>
+          <label>
+            User ID
+            <input name="userId" value={filters.userId} onChange={handleFilterChange} placeholder="Filter by requester" />
+          </label>
+          <label>
+            Resource ID
+            <input name="resourceId" value={filters.resourceId} onChange={handleFilterChange} placeholder="Filter by resource" />
+          </label>
+          <label>
+            Start date
+            <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} />
+          </label>
+          <label>
+            End date
+            <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} />
+          </label>
+          <div className="filter-actions">
+            <button type="submit">Apply filters</button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                const cleared = { status: "all", userId: "", resourceId: "", startDate: "", endDate: "" };
+                setFilters(cleared);
+                loadBookings(cleared);
+              }}
+            >
+              Clear
+            </button>
+          </div>
+        </form>
 
         {error ? <p className="error">{error}</p> : null}
 

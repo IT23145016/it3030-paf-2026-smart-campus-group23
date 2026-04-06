@@ -7,17 +7,21 @@ export default function BookingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [cancellingBooking, setCancellingBooking] = useState(null);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [filters, setFilters] = useState({
+    status: "all",
+    startDate: "",
+    endDate: ""
+  });
 
   useEffect(() => {
-    loadBookings(statusFilter);
-  }, [statusFilter]);
+    loadBookings(filters);
+  }, []);
 
-  async function loadBookings(filter) {
+  async function loadBookings(nextFilters = filters) {
     setLoading(true);
     setError("");
     try {
-      const data = await api.getUserBookings(filter);
+      const data = await api.getUserBookings(nextFilters);
       setBookings(data);
     } catch (err) {
       setError(err.message);
@@ -30,7 +34,7 @@ export default function BookingsPage() {
     setCancellingBooking(bookingId);
     try {
       await api.cancelBooking(bookingId);
-      await loadBookings(statusFilter);
+      await loadBookings(filters);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -39,7 +43,13 @@ export default function BookingsPage() {
   }
 
   function handleFilterChange(event) {
-    setStatusFilter(event.target.value);
+    const { name, value } = event.target;
+    setFilters((current) => ({ ...current, [name]: value }));
+  }
+
+  function applyFilters(event) {
+    event.preventDefault();
+    loadBookings(filters);
   }
 
   return (
@@ -50,19 +60,45 @@ export default function BookingsPage() {
             <p className="eyebrow">Your Bookings</p>
             <h3>View and manage your booking requests.</h3>
           </div>
-          <div className="toolbar-actions">
-            <select value={statusFilter} onChange={handleFilterChange}>
+          <button type="button" className="secondary-button toolbar-button" onClick={() => loadBookings(filters)}>
+            Refresh
+          </button>
+        </div>
+
+        <form className="filter-grid" onSubmit={applyFilters}>
+          <label>
+            Status
+            <select name="status" value={filters.status} onChange={handleFilterChange}>
               <option value="all">All statuses</option>
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
               <option value="cancelled">Cancelled</option>
             </select>
-            <button type="button" className="secondary-button toolbar-button" onClick={() => loadBookings(statusFilter)}>
-              Refresh
+          </label>
+          <label>
+            Start date
+            <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} />
+          </label>
+          <label>
+            End date
+            <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} />
+          </label>
+          <div className="filter-actions">
+            <button type="submit">Apply filters</button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                const cleared = { status: "all", startDate: "", endDate: "" };
+                setFilters(cleared);
+                loadBookings(cleared);
+              }}
+            >
+              Clear
             </button>
           </div>
-        </div>
+        </form>
 
         {error ? <p className="error">{error}</p> : null}
 

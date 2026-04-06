@@ -4,6 +4,8 @@ import com.scoh.api.domain.Booking;
 import com.scoh.api.domain.BookingStatus;
 import com.scoh.api.domain.CampusResource;
 import com.scoh.api.domain.NotificationType;
+import com.scoh.api.domain.Role;
+import com.scoh.api.domain.UserAccount;
 import com.scoh.api.dto.BookingCreateRequest;
 import com.scoh.api.dto.BookingResponse;
 import com.scoh.api.dto.BookingStatusUpdateRequest;
@@ -117,11 +119,11 @@ public class BookingService {
       .collect(Collectors.toList());
   }
 
-  public BookingResponse getBooking(String bookingId, String userId) {
+  public BookingResponse getBooking(String bookingId, UserAccount currentUser) {
     Booking booking = bookingRepository.findById(bookingId)
       .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
-    if (!booking.getUserId().equals(userId)) {
+    if (!booking.getUserId().equals(currentUser.getId()) && !currentUser.getRoles().contains(Role.ADMIN)) {
       throw new ForbiddenOperationException("You can only view your own bookings");
     }
 
@@ -129,7 +131,55 @@ public class BookingService {
   }
 
   public List<BookingResponse> getAllBookings() {
-    return bookingRepository.findAll().stream()
+    return getAllBookings(null, null, null, null, null);
+  }
+
+  public List<BookingResponse> getAllBookings(String status, String userId, String resourceId, String startDate, String endDate) {
+    List<Booking> bookings = bookingRepository.findAll();
+
+    if (status != null && !status.isBlank()) {
+      BookingStatus bookingStatus;
+      try {
+        bookingStatus = BookingStatus.valueOf(status.toUpperCase());
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Invalid booking status: " + status);
+      }
+      bookings = bookings.stream()
+        .filter(booking -> booking.getStatus() == bookingStatus)
+        .collect(Collectors.toList());
+    }
+
+    if (userId != null && !userId.isBlank()) {
+      bookings = bookings.stream()
+        .filter(booking -> booking.getUserId().equals(userId))
+        .collect(Collectors.toList());
+    }
+
+    if (resourceId != null && !resourceId.isBlank()) {
+      bookings = bookings.stream()
+        .filter(booking -> booking.getResourceId().equals(resourceId))
+        .collect(Collectors.toList());
+    }
+
+    if ((startDate != null && !startDate.isBlank()) || (endDate != null && !endDate.isBlank())) {
+      if (startDate == null || startDate.isBlank() || endDate == null || endDate.isBlank()) {
+        throw new IllegalArgumentException("Both startDate and endDate are required for date range filtering.");
+      }
+      try {
+        LocalDateTime start = LocalDateTime.parse(startDate + "T00:00:00");
+        LocalDateTime end = LocalDateTime.parse(endDate + "T23:59:59");
+        bookings = bookings.stream()
+          .filter(booking -> {
+            LocalDateTime bookingStart = booking.getStartTime();
+            return bookingStart.isAfter(start.minusSeconds(1)) && bookingStart.isBefore(end.plusSeconds(1));
+          })
+          .collect(Collectors.toList());
+      } catch (Exception e) {
+        throw new IllegalArgumentException("Invalid date format. Use YYYY-MM-DD format.");
+      }
+    }
+
+    return bookings.stream()
       .sorted(Comparator.comparing(Booking::getUpdatedAt).reversed())
       .map(this::toResponse)
       .collect(Collectors.toList());

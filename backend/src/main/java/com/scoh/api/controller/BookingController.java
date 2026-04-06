@@ -6,6 +6,7 @@ import com.scoh.api.dto.BookingResponse;
 import com.scoh.api.dto.BookingStatusUpdateRequest;
 import com.scoh.api.security.SecurityUtils;
 import com.scoh.api.service.BookingService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,23 +24,27 @@ public class BookingController {
   }
 
   @PostMapping
-  public ResponseEntity<BookingResponse> createBooking(@RequestBody BookingCreateRequest request) {
+  public ResponseEntity<BookingResponse> createBooking(@Valid @RequestBody BookingCreateRequest request) {
     UserAccount user = SecurityUtils.currentUser();
     BookingResponse response = bookingService.createBooking(user.getId(), request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   @GetMapping
-  public ResponseEntity<List<BookingResponse>> getUserBookings(@RequestParam(required = false) String status) {
+  public ResponseEntity<List<BookingResponse>> getUserBookings(
+    @RequestParam(required = false) String status,
+    @RequestParam(required = false) String startDate,
+    @RequestParam(required = false) String endDate
+  ) {
     UserAccount user = SecurityUtils.currentUser();
-    List<BookingResponse> bookings = bookingService.getUserBookings(user.getId(), status);
+    List<BookingResponse> bookings = bookingService.getUserBookings(user.getId(), status, startDate, endDate);
     return ResponseEntity.ok(bookings);
   }
 
   @GetMapping("/{bookingId}")
   public ResponseEntity<BookingResponse> getBookingById(@PathVariable String bookingId) {
     UserAccount user = SecurityUtils.currentUser();
-    BookingResponse response = bookingService.getBooking(bookingId, user.getId());
+    BookingResponse response = bookingService.getBooking(bookingId, user);
     return ResponseEntity.ok(response);
   }
 
@@ -52,8 +57,14 @@ public class BookingController {
 
   @GetMapping("/admin")
   @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<List<BookingResponse>> getAllBookings() {
-    List<BookingResponse> bookings = bookingService.getAllBookings();
+  public ResponseEntity<List<BookingResponse>> getAllBookings(
+    @RequestParam(required = false) String status,
+    @RequestParam(required = false) String userId,
+    @RequestParam(required = false) String resourceId,
+    @RequestParam(required = false) String startDate,
+    @RequestParam(required = false) String endDate
+  ) {
+    List<BookingResponse> bookings = bookingService.getAllBookings(status, userId, resourceId, startDate, endDate);
     return ResponseEntity.ok(bookings);
   }
 
@@ -68,7 +79,7 @@ public class BookingController {
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<BookingResponse> updateBookingStatus(
     @PathVariable String bookingId,
-    @RequestBody BookingStatusUpdateRequest request
+    @Valid @RequestBody BookingStatusUpdateRequest request
   ) {
     BookingResponse response = bookingService.updateBookingStatus(bookingId, request);
     return ResponseEntity.ok(response);

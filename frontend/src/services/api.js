@@ -66,10 +66,16 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload)
     }),
-  getUserBookings: (status) => {
+  getUserBookings: (filters = {}) => {
     const params = new URLSearchParams();
-    if (status && status !== "all") {
-      params.set("status", status.toUpperCase());
+    if (filters.status && filters.status !== "all") {
+      params.set("status", filters.status.toUpperCase());
+    }
+    if (filters.startDate) {
+      params.set("startDate", filters.startDate);
+    }
+    if (filters.endDate) {
+      params.set("endDate", filters.endDate);
     }
     return request(`/api/bookings${params.toString() ? `?${params.toString()}` : ""}`);
   },
@@ -78,7 +84,25 @@ export const api = {
     request(`/api/bookings/${bookingId}`, {
       method: "DELETE"
     }),
-  getAllBookings: () => request("/api/bookings/admin"),
+  getAllBookings: (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.status && filters.status !== "all") {
+      params.set("status", filters.status.toUpperCase());
+    }
+    if (filters.userId) {
+      params.set("userId", filters.userId);
+    }
+    if (filters.resourceId) {
+      params.set("resourceId", filters.resourceId);
+    }
+    if (filters.startDate) {
+      params.set("startDate", filters.startDate);
+    }
+    if (filters.endDate) {
+      params.set("endDate", filters.endDate);
+    }
+    return request(`/api/bookings/admin${params.toString() ? `?${params.toString()}` : ""}`);
+  },
   getPendingBookings: () => request("/api/bookings/admin/pending"),
   updateBookingStatus: (bookingId, payload) =>
     request(`/api/bookings/admin/${bookingId}/status`, {
