@@ -25,30 +25,29 @@ public class BookingController {
   @PostMapping
   public ResponseEntity<BookingResponse> createBooking(@RequestBody BookingCreateRequest request) {
     UserAccount user = SecurityUtils.currentUser();
-    try {
-      BookingResponse response = bookingService.createBooking(user.getId(), request);
-      return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-    }
+    BookingResponse response = bookingService.createBooking(user.getId(), request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   @GetMapping
-  public ResponseEntity<List<BookingResponse>> getUserBookings() {
+  public ResponseEntity<List<BookingResponse>> getUserBookings(@RequestParam(required = false) String status) {
     UserAccount user = SecurityUtils.currentUser();
-    List<BookingResponse> bookings = bookingService.getUserBookings(user.getId());
+    List<BookingResponse> bookings = bookingService.getUserBookings(user.getId(), status);
     return ResponseEntity.ok(bookings);
+  }
+
+  @GetMapping("/{bookingId}")
+  public ResponseEntity<BookingResponse> getBookingById(@PathVariable String bookingId) {
+    UserAccount user = SecurityUtils.currentUser();
+    BookingResponse response = bookingService.getBooking(bookingId, user.getId());
+    return ResponseEntity.ok(response);
   }
 
   @DeleteMapping("/{bookingId}")
   public ResponseEntity<BookingResponse> cancelBooking(@PathVariable String bookingId) {
     UserAccount user = SecurityUtils.currentUser();
-    try {
-      BookingResponse response = bookingService.cancelBooking(bookingId, user.getId());
-      return ResponseEntity.ok(response);
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-    }
+    BookingResponse response = bookingService.cancelBooking(bookingId, user.getId());
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping("/admin")
@@ -71,11 +70,8 @@ public class BookingController {
     @PathVariable String bookingId,
     @RequestBody BookingStatusUpdateRequest request
   ) {
-    try {
-      BookingResponse response = bookingService.updateBookingStatus(bookingId, request);
-      return ResponseEntity.ok(response);
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-    }
+    BookingResponse response = bookingService.updateBookingStatus(bookingId, request);
+    return ResponseEntity.ok(response);
   }
 }
+

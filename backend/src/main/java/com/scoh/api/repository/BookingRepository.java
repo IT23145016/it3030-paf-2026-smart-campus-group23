@@ -10,8 +10,14 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends MongoRepository<Booking, String> {
   List<Booking> findByUserId(String userId);
+  List<Booking> findByUserIdAndStatus(String userId, BookingStatus status);
   List<Booking> findByResourceId(String resourceId);
-  List<Booking> findByStatus(BookingStatus status);
   List<Booking> findByResourceIdAndStatus(String resourceId, BookingStatus status);
-  List<Booking> findByResourceIdAndStartTimeBeforeAndEndTimeAfter(String resourceId, LocalDateTime endTime, LocalDateTime startTime);
+  List<Booking> findByStatus(BookingStatus status);
+  List<Booking> findByResourceIdAndStatusInAndStartTimeBeforeAndEndTimeAfter(
+    String resourceId,
+    List<BookingStatus> statuses,
+    LocalDateTime endTime,
+    LocalDateTime startTime
+  );
 }

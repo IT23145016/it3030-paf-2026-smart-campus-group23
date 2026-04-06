@@ -66,7 +66,14 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload)
     }),
-  getUserBookings: () => request("/api/bookings"),
+  getUserBookings: (status) => {
+    const params = new URLSearchParams();
+    if (status && status !== "all") {
+      params.set("status", status.toUpperCase());
+    }
+    return request(`/api/bookings${params.toString() ? `?${params.toString()}` : ""}`);
+  },
+  getBooking: (bookingId) => request(`/api/bookings/${bookingId}`),
   cancelBooking: (bookingId) =>
     request(`/api/bookings/${bookingId}`, {
       method: "DELETE"

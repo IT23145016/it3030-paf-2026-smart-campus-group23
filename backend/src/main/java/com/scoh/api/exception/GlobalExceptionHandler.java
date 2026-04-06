@@ -28,6 +28,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.FORBIDDEN, exception.getMessage(), request.getRequestURI(), null);
     }
 
+    @ExceptionHandler(BookingConflictException.class)
+    public ResponseEntity<ApiErrorResponse> handleConflict(
+            BookingConflictException exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.CONFLICT, exception.getMessage(), request.getRequestURI(), null);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(
             MethodArgumentNotValidException exception, HttpServletRequest request) {

@@ -7,16 +7,17 @@ export default function BookingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [cancellingBooking, setCancellingBooking] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
-    loadBookings();
-  }, []);
+    loadBookings(statusFilter);
+  }, [statusFilter]);
 
-  async function loadBookings() {
+  async function loadBookings(filter) {
     setLoading(true);
     setError("");
     try {
-      const data = await api.getUserBookings();
+      const data = await api.getUserBookings(filter);
       setBookings(data);
     } catch (err) {
       setError(err.message);
@@ -29,12 +30,16 @@ export default function BookingsPage() {
     setCancellingBooking(bookingId);
     try {
       await api.cancelBooking(bookingId);
-      await loadBookings();
+      await loadBookings(statusFilter);
     } catch (err) {
       setError(err.message);
     } finally {
       setCancellingBooking(null);
     }
+  }
+
+  function handleFilterChange(event) {
+    setStatusFilter(event.target.value);
   }
 
   return (
@@ -45,9 +50,18 @@ export default function BookingsPage() {
             <p className="eyebrow">Your Bookings</p>
             <h3>View and manage your booking requests.</h3>
           </div>
-          <button type="button" className="secondary-button toolbar-button" onClick={loadBookings}>
-            Refresh
-          </button>
+          <div className="toolbar-actions">
+            <select value={statusFilter} onChange={handleFilterChange}>
+              <option value="all">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <button type="button" className="secondary-button toolbar-button" onClick={() => loadBookings(statusFilter)}>
+              Refresh
+            </button>
+          </div>
         </div>
 
         {error ? <p className="error">{error}</p> : null}
@@ -94,7 +108,7 @@ export default function BookingsPage() {
                   ) : null}
                 </div>
                 <div className="booking-actions">
-                  {booking.status === "APPROVED" ? (
+                  {booking.status === "APPROVED" || booking.status === "PENDING" ? (
                     <button
                       type="button"
                       className="secondary-button"
