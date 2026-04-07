@@ -191,46 +191,52 @@ export default function AdminBookingsPage() {
         ) : null}
 
         {loading ? (
-          <div className="panel">Loading bookings...</div>
+          <div className="booking-empty-state">Loading bookings...</div>
         ) : getFilteredBookings().length === 0 ? (
-          <div className="panel">No bookings found for the selected filter.</div>
+          <div className="booking-empty-state">
+            <span className="booking-empty-icon">📂</span>
+            <p>No bookings found for the selected filters.</p>
+          </div>
         ) : (
           <div className="booking-list">
             {getFilteredBookings().map((booking) => (
               <article className="booking-card" key={booking.id}>
                 <div className="booking-header">
-                  <div>
-                    <p className="eyebrow">Booking Request</p>
-                    <h4>Resource: {booking.resourceId}</h4>
+                  <div className="booking-title-row">
+                    <span className="booking-icon">🏛️</span>
+                    <div>
+                      <p className="eyebrow">Booking Request</p>
+                      <h4>{booking.resourceName || `Resource #${booking.resourceId}`}</h4>
+                    </div>
                   </div>
                   <span className={`status-pill ${booking.status?.toLowerCase() || "pending"}`}>
                     {booking.status || "PENDING"}
                   </span>
                 </div>
                 <div className="booking-details">
-                  <div>
-                    <strong>Purpose:</strong>
+                  <div className="booking-detail-item">
+                    <span className="booking-detail-label">Purpose</span>
                     <span>{booking.purpose}</span>
                   </div>
-                  <div>
-                    <strong>Attendees:</strong>
+                  <div className="booking-detail-item">
+                    <span className="booking-detail-label">Attendees</span>
                     <span>{booking.attendees}</span>
                   </div>
-                  <div>
-                    <strong>Start:</strong>
+                  <div className="booking-detail-item">
+                    <span className="booking-detail-label">Start</span>
                     <span>{new Date(booking.startTime).toLocaleString()}</span>
                   </div>
-                  <div>
-                    <strong>End:</strong>
+                  <div className="booking-detail-item">
+                    <span className="booking-detail-label">End</span>
                     <span>{new Date(booking.endTime).toLocaleString()}</span>
                   </div>
-                  <div>
-                    <strong>Requested:</strong>
+                  <div className="booking-detail-item">
+                    <span className="booking-detail-label">Requested</span>
                     <span>{new Date(booking.createdAt).toLocaleString()}</span>
                   </div>
                   {booking.adminNotes ? (
-                    <div>
-                      <strong>Admin Notes:</strong>
+                    <div className="booking-detail-item booking-admin-note">
+                      <span className="booking-detail-label">Admin Notes</span>
                       <span>{booking.adminNotes}</span>
                     </div>
                   ) : null}
@@ -241,7 +247,7 @@ export default function AdminBookingsPage() {
                       Update Status
                     </button>
                   ) : (
-                    <span className="status-note">No actions available</span>
+                    <span className="status-note">No further actions available</span>
                   )}
                 </div>
               </article>
