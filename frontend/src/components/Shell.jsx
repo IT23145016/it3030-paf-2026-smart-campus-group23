@@ -74,7 +74,7 @@ export default function Shell({ title, children }) {
             <span className="drawer-mark">SC</span>
             <div>
               <p className="profile-label">Quick menu</p>
-              <strong>Campus navigation</strong>
+              <strong>Quick Access</strong>
             </div>
           </div>
           <button type="button" className="drawer-close-button" onClick={closeMenu} aria-label="Close menu">
