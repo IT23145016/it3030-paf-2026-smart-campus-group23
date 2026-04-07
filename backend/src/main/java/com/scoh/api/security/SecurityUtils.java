@@ -1,5 +1,6 @@
 package com.scoh.api.security;
 
+import com.scoh.api.domain.Role;
 import com.scoh.api.domain.UserAccount;
 import com.scoh.api.exception.ForbiddenOperationException;
 import org.springframework.security.core.Authentication;
@@ -20,5 +21,9 @@ public final class SecurityUtils {
             return appOidcUser.getUser();
         }
         throw new ForbiddenOperationException("Authenticated user context is unavailable.");
+    }
+
+    public static boolean hasRole(Role role) {
+        return currentUser().getRoles().contains(role);
     }
 }

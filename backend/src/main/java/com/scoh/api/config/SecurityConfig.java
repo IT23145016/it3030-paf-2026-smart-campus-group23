@@ -41,6 +41,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/resources/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/bookings/admin").hasRole("ADMIN")
+                        .requestMatchers("/api/bookings/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/resources/**").hasRole("ADMIN")
                         .requestMatchers("/api/notifications/**").hasAnyRole("USER", "ADMIN", "TECHNICIAN")
                         .requestMatchers("/api/auth/**").authenticated()
@@ -50,7 +52,9 @@ public class SecurityConfig {
                                 .userService(customOAuth2UserService)
                                 .oidcUserService(customOidcUserService))
                         .successHandler(successHandler))
-                .logout(logout -> logout.logoutSuccessUrl("/"))
+                .logout(logout -> logout.logoutSuccessHandler(
+                        (request, response, authentication) ->
+                                response.sendRedirect(appProperties.getOauth2().getLogoutRedirectUrl())))
                 .httpBasic(Customizer.withDefaults());
 
         return http.build();

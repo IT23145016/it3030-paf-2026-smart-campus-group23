@@ -1,6 +1,10 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
+function getAuthenticatedHome(user) {
+  return user?.roles?.includes("ADMIN") ? "/dashboard" : "/resources";
+}
+
 export function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
 
@@ -23,7 +27,7 @@ export function PublicOnlyRoute({ children }) {
   }
 
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getAuthenticatedHome(user)} replace />;
   }
 
   return children;
@@ -41,8 +45,10 @@ export function AdminRoute({ children }) {
   }
 
   if (!user.roles?.includes("ADMIN")) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getAuthenticatedHome(user)} replace />;
   }
 
   return children;
 }
+
+export { getAuthenticatedHome };

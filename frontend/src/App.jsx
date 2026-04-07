@@ -8,6 +8,8 @@ import RoleManagementPage from "./pages/RoleManagementPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import ResourcesPage from "./pages/ResourcesPage";
 import ResourceAdminPage from "./pages/ResourceAdminPage";
+import BookingsPage from "./pages/BookingsPage";
+import AdminBookingsPage from "./pages/AdminBookingsPage";
 
 export default function App() {
   return (
@@ -15,6 +17,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/resources" element={<ResourcesPage />} />
+        <Route
+          path="/bookings"
+          element={
+            <ProtectedRoute>
+              <BookingsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/signin"
           element={
@@ -44,6 +54,14 @@ export default function App() {
           element={
             <AdminRoute>
               <ResourceAdminPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/bookings"
+          element={
+            <AdminRoute>
+              <AdminBookingsPage />
             </AdminRoute>
           }
         />

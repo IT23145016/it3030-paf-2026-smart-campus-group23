@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -60,5 +60,53 @@ export const api = {
     request(`/api/admin/users/${userId}/roles`, {
       method: "PUT",
       body: JSON.stringify({ roles })
+    }),
+  createBooking: (payload) =>
+    request("/api/bookings", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    }),
+  getUserBookings: (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.status && filters.status !== "all") {
+      params.set("status", filters.status.toUpperCase());
+    }
+    if (filters.startDate) {
+      params.set("startDate", filters.startDate);
+    }
+    if (filters.endDate) {
+      params.set("endDate", filters.endDate);
+    }
+    return request(`/api/bookings${params.toString() ? `?${params.toString()}` : ""}`);
+  },
+  getBooking: (bookingId) => request(`/api/bookings/${bookingId}`),
+  cancelBooking: (bookingId) =>
+    request(`/api/bookings/${bookingId}`, {
+      method: "DELETE"
+    }),
+  getAllBookings: (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.status && filters.status !== "all") {
+      params.set("status", filters.status.toUpperCase());
+    }
+    if (filters.userId) {
+      params.set("userId", filters.userId);
+    }
+    if (filters.resourceId) {
+      params.set("resourceId", filters.resourceId);
+    }
+    if (filters.startDate) {
+      params.set("startDate", filters.startDate);
+    }
+    if (filters.endDate) {
+      params.set("endDate", filters.endDate);
+    }
+    return request(`/api/bookings/admin${params.toString() ? `?${params.toString()}` : ""}`);
+  },
+  getPendingBookings: () => request("/api/bookings/admin/pending"),
+  updateBookingStatus: (bookingId, payload) =>
+    request(`/api/bookings/admin/${bookingId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify(payload)
     })
 };

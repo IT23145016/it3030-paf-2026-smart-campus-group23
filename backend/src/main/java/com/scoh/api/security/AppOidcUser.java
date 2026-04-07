@@ -1,11 +1,7 @@
 package com.scoh.api.security;
 
-import com.scoh.api.domain.Role;
 import com.scoh.api.domain.UserAccount;
-import java.util.Set;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.core.oidc.OidcIdToken;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 

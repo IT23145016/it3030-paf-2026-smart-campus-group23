@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import Shell from "../components/Shell";
 import { api } from "../services/api";
 
@@ -29,6 +30,12 @@ export default function ResourcesPage() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [bookingResource, setBookingResource] = useState(null);
+  const [bookingForm, setBookingForm] = useState({ purpose: "", attendees: 1, startTime: "", endTime: "" });
+  const [bookingMessage, setBookingMessage] = useState("");
+  const [bookingError, setBookingError] = useState("");
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const { user } = useAuth();
   const activeCount = resources.filter((resource) => resource.status === "ACTIVE").length;
   const maintenanceCount = resources.filter((resource) => resource.status === "MAINTENANCE").length;
   const outOfServiceCount = resources.filter((resource) => resource.status === "OUT_OF_SERVICE").length;
@@ -58,6 +65,54 @@ export default function ResourcesPage() {
   async function submitFilters(event) {
     event.preventDefault();
     loadResources(filters);
+  }
+
+  function openBooking(resource) {
+    setBookingResource(resource);
+    setBookingForm({ purpose: "", attendees: 1, startTime: "", endTime: "" });
+    setBookingError("");
+    setBookingMessage("");
+  }
+
+  function closeBooking() {
+    setBookingResource(null);
+    setBookingError("");
+    setBookingMessage("");
+  }
+
+  function handleBookingChange(event) {
+    const { name, value } = event.target;
+    setBookingForm((current) => ({ ...current, [name]: value }));
+  }
+
+  async function submitBooking(event) {
+    event.preventDefault();
+    if (!bookingResource) {
+      return;
+    }
+
+    setBookingLoading(true);
+    setBookingError("");
+    setBookingMessage("");
+    try {
+      await api.createBooking({
+        resourceId: bookingResource.id,
+        purpose: bookingForm.purpose,
+        attendees: Number(bookingForm.attendees),
+        // The backend expects a LocalDateTime string, so send the plain datetime-local value.
+        startTime: bookingForm.startTime,
+        endTime: bookingForm.endTime
+      });
+      setBookingMessage("Booking request submitted successfully.");
+      setBookingForm((current) => ({ ...current, purpose: "", attendees: 1, startTime: "", endTime: "" }));
+      setTimeout(() => {
+        closeBooking();
+      }, 2000);
+    } catch (err) {
+      setBookingError(err.message || "Failed to submit booking request.");
+    } finally {
+      setBookingLoading(false);
+    }
   }
 
   return (
@@ -160,6 +215,49 @@ export default function ResourcesPage() {
 
       {error ? <p className="error">{error}</p> : null}
 
+      {bookingResource ? (
+        <section className="table-card">
+          <div className="table-header">
+            <div>
+              <p className="eyebrow">Booking request</p>
+              <h3>Request a booking for {bookingResource.name}</h3>
+            </div>
+            <button type="button" className="secondary-button" onClick={closeBooking}>
+              Close
+            </button>
+          </div>
+
+          <form className="filter-grid" onSubmit={submitBooking}>
+            <label>
+              Start time
+              <input type="datetime-local" name="startTime" value={bookingForm.startTime} onChange={handleBookingChange} required />
+            </label>
+            <label>
+              End time
+              <input type="datetime-local" name="endTime" value={bookingForm.endTime} onChange={handleBookingChange} required />
+            </label>
+            <label>
+              Attendees
+              <input type="number" min="1" max={bookingResource.capacity} name="attendees" value={bookingForm.attendees} onChange={handleBookingChange} required />
+            </label>
+            <label className="field-full">
+              Purpose
+              <textarea name="purpose" value={bookingForm.purpose} onChange={handleBookingChange} required />
+            </label>
+            <div className="filter-actions">
+              <button type="submit" disabled={bookingLoading}>
+                {bookingLoading ? "Submitting..." : "Submit booking request"}
+              </button>
+              <button type="button" className="secondary-button" onClick={closeBooking}>
+                Cancel
+              </button>
+            </div>
+            {bookingMessage ? <p className="success">{bookingMessage}</p> : null}
+            {bookingError ? <p className="error">{bookingError}</p> : null}
+          </form>
+        </section>
+      ) : null}
+
       <section className="resource-grid">
         {loading ? <div className="panel">Loading catalogue...</div> : null}
         {!loading && resources.length === 0 ? <div className="panel">No resources matched your filters.</div> : null}
@@ -206,6 +304,17 @@ export default function ResourcesPage() {
                     </div>
                   ))}
                 </div>
+                </div>
+                <div className="resource-card-actions">
+                  {user && resource.status === "ACTIVE" ? (
+                    <button type="button" onClick={() => openBooking(resource)}>
+                      Request booking
+                    </button>
+                  ) : (
+                    <button type="button" className="secondary-button" disabled>
+                      {user ? "Booking unavailable" : "Sign in to book"}
+                    </button>
+                  )}
                 </div>
               </article>
             ))

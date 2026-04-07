@@ -36,6 +36,11 @@ export default function Shell({ title, children }) {
           <a className="page-menubar-link" href="#footer-about">
             About Us
           </a>
+          {user ? (
+            <a className="page-menubar-logout" href={`${apiBaseUrl}/logout`}>
+              Log out
+            </a>
+          ) : null}
           {!user ? (
             <Link className="menu-icon-link" to="/signin" aria-label="Sign in">
               <SignInIcon />
@@ -86,10 +91,18 @@ export default function Shell({ title, children }) {
           <Link to="/resources" onClick={closeMenu}>
             Facilities Catalogue
           </Link>
+          {user && !user.roles?.includes("ADMIN") ? (
+            <Link to="/bookings" onClick={closeMenu}>
+              My Bookings
+            </Link>
+          ) : null}
           {user?.roles?.includes("ADMIN") ? (
             <>
               <Link to="/admin/resources" onClick={closeMenu}>
                 Resource Administration
+              </Link>
+              <Link to="/admin/bookings" onClick={closeMenu}>
+                Booking Requests
               </Link>
               <Link to="/admin/roles" onClick={closeMenu}>
                 Role Management

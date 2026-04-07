@@ -39,6 +39,7 @@ public class AppProperties {
 
     public static class OAuth2 {
         private String successRedirectUrl = "http://localhost:5174/auth/callback";
+        private String logoutRedirectUrl = "http://localhost:5174/";
 
         public String getSuccessRedirectUrl() {
             return successRedirectUrl;
@@ -46,6 +47,14 @@ public class AppProperties {
 
         public void setSuccessRedirectUrl(String successRedirectUrl) {
             this.successRedirectUrl = successRedirectUrl;
+        }
+
+        public String getLogoutRedirectUrl() {
+            return logoutRedirectUrl;
+        }
+
+        public void setLogoutRedirectUrl(String logoutRedirectUrl) {
+            this.logoutRedirectUrl = logoutRedirectUrl;
         }
     }
 }
