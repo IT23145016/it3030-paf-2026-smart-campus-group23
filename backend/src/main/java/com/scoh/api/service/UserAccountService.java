@@ -63,7 +63,7 @@ public class UserAccountService {
                 .toList();
     }
 
-    public UserSummaryResponse createUser(AdminUserCreateRequest request) {
+    public UserSummaryResponse createUser(AdminUserCreateRequest request, String actingUserId) {
         userAccountRepository.findByEmailIgnoreCase(request.email()).ifPresent(existing -> {
             throw new ForbiddenOperationException("A user already exists for email: " + request.email());
         });
@@ -79,7 +79,16 @@ public class UserAccountService {
                 : request.roles());
 
         UserAccount saved = userAccountRepository.save(user);
-        notificationService.createRoleUpdateNotification(saved);
+        notificationService.createAccountCreatedNotification(saved);
+        notificationService.createAdminAuditNotification(
+                actingUserId,
+                "User created",
+                "You created an account for " + saved.getEmail() + ".",
+                java.util.Map.of(
+                        "targetUserId", saved.getId(),
+                        "email", saved.getEmail(),
+                        "roles", saved.getRoles(),
+                        "active", saved.isActive()));
         return toSummary(saved);
     }
 
@@ -92,6 +101,14 @@ public class UserAccountService {
         target.setRoles(roles);
         UserAccount saved = userAccountRepository.save(target);
         notificationService.createRoleUpdateNotification(saved);
+        notificationService.createAdminAuditNotification(
+                actingUserId,
+                "Roles updated",
+                "You updated roles for " + saved.getEmail() + ".",
+                java.util.Map.of(
+                        "targetUserId", saved.getId(),
+                        "email", saved.getEmail(),
+                        "roles", saved.getRoles()));
         return toSummary(saved);
     }
 
@@ -103,6 +120,15 @@ public class UserAccountService {
 
         target.setActive(Boolean.TRUE.equals(request.active()));
         UserAccount saved = userAccountRepository.save(target);
+        notificationService.createAccountStatusNotification(saved);
+        notificationService.createAdminAuditNotification(
+                actingUserId,
+                saved.isActive() ? "User activated" : "User deactivated",
+                "You " + (saved.isActive() ? "activated " : "deactivated ") + saved.getEmail() + ".",
+                java.util.Map.of(
+                        "targetUserId", saved.getId(),
+                        "email", saved.getEmail(),
+                        "active", saved.isActive()));
         return toSummary(saved);
     }
 
@@ -111,6 +137,13 @@ public class UserAccountService {
         if (target.getId().equals(actingUserId)) {
             throw new ForbiddenOperationException("Admins cannot delete their own account.");
         }
+        notificationService.createAdminAuditNotification(
+                actingUserId,
+                "User deleted",
+                "You deleted the account for " + target.getEmail() + ".",
+                java.util.Map.of(
+                        "targetUserId", target.getId(),
+                        "email", target.getEmail()));
         userAccountRepository.delete(target);
     }
 

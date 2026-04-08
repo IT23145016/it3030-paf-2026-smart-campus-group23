@@ -4,6 +4,7 @@ import { api } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 
 const POLL_INTERVAL_MS = 15000;
+const REFRESH_EVENT_NAME = "scoh:refresh-notifications";
 
 export default function NotificationPanel() {
   const { user } = useAuth();
@@ -76,11 +77,17 @@ export default function NotificationPanel() {
       }
     };
 
+    const handleRefreshRequest = () => {
+      loadNotifications();
+    };
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener(REFRESH_EVENT_NAME, handleRefreshRequest);
 
     return () => {
       window.clearInterval(intervalId);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener(REFRESH_EVENT_NAME, handleRefreshRequest);
     };
   }, [user]);
 

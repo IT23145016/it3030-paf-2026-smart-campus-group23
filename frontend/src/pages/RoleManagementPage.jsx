@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import NotificationPanel from "../components/NotificationPanel";
 import Shell from "../components/Shell";
+import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
 
 const ROLE_OPTIONS = ["USER", "ADMIN", "TECHNICIAN"];
@@ -9,11 +11,15 @@ const EMPTY_FORM = {
   avatarUrl: "",
   roles: ["USER"]
 };
+const NOTIFICATION_REFRESH_EVENT = "scoh:refresh-notifications";
 
 export default function RoleManagementPage() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
   const [form, setForm] = useState(EMPTY_FORM);
+  const [updatingUserId, setUpdatingUserId] = useState("");
+  const [deletingUserId, setDeletingUserId] = useState("");
 
   useEffect(() => {
     loadUsers();
@@ -36,20 +42,48 @@ export default function RoleManagementPage() {
       : [...targetUser.roles, role];
 
     try {
+      setUpdatingUserId(userId);
       const updated = await api.updateRoles(userId, nextRoles);
       setUsers((current) => current.map((user) => (user.id === userId ? updated : user)));
+      setError("");
+      window.dispatchEvent(new Event(NOTIFICATION_REFRESH_EVENT));
     } catch (err) {
       setError(err.message);
+    } finally {
+      setUpdatingUserId("");
     }
   }
 
   async function toggleStatus(userId, active) {
+    const targetUser = users.find((item) => item.id === userId);
+    const isSelf = currentUser?.id === userId;
+
+    if (isSelf && active === false) {
+      setError("Admins cannot deactivate their own account.");
+      return;
+    }
+
+    if (targetUser) {
+      const confirmed = window.confirm(
+        active
+          ? `Activate ${targetUser.fullName || targetUser.email}?`
+          : `Deactivate ${targetUser.fullName || targetUser.email}?`
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
     try {
+      setUpdatingUserId(userId);
       const updated = await api.updateUserStatus(userId, active);
       setUsers((current) => current.map((user) => (user.id === userId ? updated : user)));
       setError("");
+      window.dispatchEvent(new Event(NOTIFICATION_REFRESH_EVENT));
     } catch (err) {
       setError(err.message);
+    } finally {
+      setUpdatingUserId("");
     }
   }
 
@@ -75,18 +109,39 @@ export default function RoleManagementPage() {
       setUsers((current) => [created, ...current]);
       setForm(EMPTY_FORM);
       setError("");
+      window.dispatchEvent(new Event(NOTIFICATION_REFRESH_EVENT));
     } catch (err) {
       setError(err.message);
     }
   }
 
   async function deleteUser(userId) {
+    const targetUser = users.find((item) => item.id === userId);
+
+    if (currentUser?.id === userId) {
+      setError("Admins cannot delete their own account.");
+      return;
+    }
+
+    if (targetUser) {
+      const confirmed = window.confirm(
+        `Delete ${targetUser.fullName || targetUser.email}? This action cannot be undone.`
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
     try {
+      setDeletingUserId(userId);
       await api.deleteUser(userId);
       setUsers((current) => current.filter((user) => user.id !== userId));
       setError("");
+      window.dispatchEvent(new Event(NOTIFICATION_REFRESH_EVENT));
     } catch (err) {
       setError(err.message);
+    } finally {
+      setDeletingUserId("");
     }
   }
 
@@ -167,8 +222,13 @@ export default function RoleManagementPage() {
                     type="button"
                     className="secondary-button"
                     onClick={() => toggleStatus(user.id, !user.active)}
-                  >
-                    {user.active ? "Active" : "Inactive"}
+                    disabled={updatingUserId === user.id}
+                    >
+                    {updatingUserId === user.id
+                      ? "Updating..."
+                      : user.active
+                        ? "Active"
+                        : "Inactive"}
                   </button>
                 </td>
                 <td>
@@ -179,6 +239,7 @@ export default function RoleManagementPage() {
                           type="checkbox"
                           checked={user.roles.includes(role)}
                           onChange={() => toggleRole(user.id, role)}
+                          disabled={updatingUserId === user.id}
                         />
                         <span>{role}</span>
                       </label>
@@ -186,8 +247,13 @@ export default function RoleManagementPage() {
                   </div>
                 </td>
                 <td>
-                  <button type="button" className="secondary-button" onClick={() => deleteUser(user.id)}>
-                    Delete
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => deleteUser(user.id)}
+                    disabled={deletingUserId === user.id || currentUser?.id === user.id}
+                  >
+                    {deletingUserId === user.id ? "Deleting..." : "Delete"}
                   </button>
                 </td>
               </tr>
@@ -195,6 +261,8 @@ export default function RoleManagementPage() {
           </tbody>
         </table>
       </section>
+
+      <NotificationPanel />
     </Shell>
   );
 }

@@ -62,6 +62,47 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    public void createAccountCreatedNotification(UserAccount user) {
+        createSystemNotification(
+                user.getId(),
+                "Account created",
+                "An administrator created your account with roles: " + user.getRoles(),
+                Map.of("roles", user.getRoles(), "active", user.isActive()),
+                "/bookings#notifications");
+    }
+
+    public void createAccountStatusNotification(UserAccount user) {
+        createSystemNotification(
+                user.getId(),
+                user.isActive() ? "Account activated" : "Account deactivated",
+                user.isActive()
+                        ? "Your account has been activated by an administrator."
+                        : "Your account has been deactivated by an administrator.",
+                Map.of("active", user.isActive()),
+                "/bookings#notifications");
+    }
+
+    public void createAdminAuditNotification(String adminUserId, String title, String message, Map<String, Object> metadata) {
+        createSystemNotification(adminUserId, title, message, metadata, "/admin/roles#notifications");
+    }
+
+    private void createSystemNotification(
+            String recipientUserId,
+            String title,
+            String message,
+            Map<String, Object> metadata,
+            String targetUrl) {
+        Notification notification = new Notification();
+        notification.setRecipientUserId(recipientUserId);
+        notification.setType(NotificationType.SYSTEM);
+        notification.setTitle(title);
+        notification.setMessage(message);
+        notification.setTargetUrl(targetUrl);
+        notification.setMetadata(metadata);
+        notification.setRead(false);
+        notificationRepository.save(notification);
+    }
+
     public List<NotificationResponse> getNotificationsForUser(String userId) {
         return notificationRepository.findByRecipientUserIdOrderByCreatedAtDesc(userId).stream()
                 .map(this::toResponse)

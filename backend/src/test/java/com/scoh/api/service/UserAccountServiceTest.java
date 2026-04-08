@@ -62,9 +62,14 @@ class UserAccountServiceTest {
         when(userAccountRepository.findByEmailIgnoreCase("new.user@example.com")).thenReturn(Optional.empty());
         when(userAccountRepository.save(org.mockito.ArgumentMatchers.any(UserAccount.class))).thenReturn(saved);
 
-        userAccountService.createUser(request);
+        userAccountService.createUser(request, "admin-1");
 
-        verify(notificationService).createRoleUpdateNotification(saved);
+        verify(notificationService).createAccountCreatedNotification(saved);
+        verify(notificationService).createAdminAuditNotification(
+                org.mockito.ArgumentMatchers.eq("admin-1"),
+                org.mockito.ArgumentMatchers.eq("User created"),
+                org.mockito.ArgumentMatchers.contains("new.user@example.com"),
+                org.mockito.ArgumentMatchers.anyMap());
     }
 
     @Test

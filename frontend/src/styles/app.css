@@ -320,6 +320,20 @@ p {
   gap: 1rem;
 }
 
+.global-notification-alert {
+  padding: 0.95rem 1.1rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(214, 108, 63, 0.14), rgba(246, 200, 126, 0.26));
+  border: 1px solid rgba(214, 108, 63, 0.2);
+  box-shadow: 0 16px 34px rgba(16, 33, 29, 0.08);
+}
+
+.global-notification-alert a {
+  display: block;
+  color: #6f341d;
+  font-weight: 700;
+}
+
 .shell-topbar h1 {
   margin-bottom: 0;
 }
@@ -1201,6 +1215,7 @@ p {
   border-radius: 999px;
   background: #f3e5d0;
 }
+
 
 table {
   width: 100%;

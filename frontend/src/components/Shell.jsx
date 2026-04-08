@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
@@ -10,8 +10,10 @@ export default function Shell({ title, children }) {
   const { user, loading } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationAlert, setNotificationAlert] = useState("");
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
   const notificationHref = user?.roles?.includes("ADMIN") ? "/dashboard#notifications" : "/bookings#notifications";
+  const knownUnreadIdsRef = useRef([]);
   const initials = user?.fullName
     ? user.fullName
         .split(" ")
@@ -29,12 +31,29 @@ export default function Shell({ title, children }) {
     async function loadUnreadCount() {
       if (!user) {
         setUnreadCount(0);
+        knownUnreadIdsRef.current = [];
+        setNotificationAlert("");
         return;
       }
 
       try {
-        const unread = await api.getUnreadCount();
+        const [unread, notifications] = await Promise.all([api.getUnreadCount(), api.getNotifications()]);
         setUnreadCount(unread.count || 0);
+
+        const nextUnreadIds = notifications.filter((item) => !item.read).map((item) => item.id);
+        const newUnreadItems = notifications.filter(
+          (item) => !item.read && !knownUnreadIdsRef.current.includes(item.id)
+        );
+
+        if (knownUnreadIdsRef.current.length > 0 && newUnreadItems.length > 0) {
+          setNotificationAlert(
+            newUnreadItems.length === 1
+              ? `New notification: ${newUnreadItems[0].title}`
+              : `${newUnreadItems.length} new notifications received.`
+          );
+        }
+
+        knownUnreadIdsRef.current = nextUnreadIds;
       } catch {
         setUnreadCount(0);
       }
@@ -60,6 +79,18 @@ export default function Shell({ title, children }) {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [user]);
+
+  useEffect(() => {
+    if (!notificationAlert) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setNotificationAlert("");
+    }, 5000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [notificationAlert]);
 
   return (
     <div className="shell">
@@ -106,6 +137,12 @@ export default function Shell({ title, children }) {
         </div>
         <div className="shell-topbar-spacer" aria-hidden="true" />
       </header>
+
+      {notificationAlert ? (
+        <div className="global-notification-alert">
+          <Link to={notificationHref}>{notificationAlert}</Link>
+        </div>
+      ) : null}
 
       <main className="content">
         {children}

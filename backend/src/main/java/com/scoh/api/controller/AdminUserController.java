@@ -39,7 +39,7 @@ public class AdminUserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserSummaryResponse createUser(@Valid @RequestBody AdminUserCreateRequest request) {
-        return userAccountService.createUser(request);
+        return userAccountService.createUser(request, SecurityUtils.currentUser().getId());
     }
 
     @PutMapping("/{userId}/roles")
