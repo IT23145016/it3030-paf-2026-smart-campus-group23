@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
 
 export default function SignInPage() {
+  const { authMessage } = useAuth();
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
   return (
@@ -23,6 +25,8 @@ export default function SignInPage() {
             <span>Role-based dashboard access</span>
             <span>MongoDB-backed notifications</span>
           </div>
+
+          {authMessage ? <p className="error">{authMessage}</p> : null}
 
           <a className="signin-button" href={`${apiBaseUrl}/oauth2/authorization/google`}>
             Continue with Google

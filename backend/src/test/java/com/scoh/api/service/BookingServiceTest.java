@@ -3,6 +3,7 @@ package com.scoh.api.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,6 +12,7 @@ import com.scoh.api.domain.Booking;
 import com.scoh.api.domain.BookingStatus;
 import com.scoh.api.domain.CampusResource;
 import com.scoh.api.domain.AvailabilityWindow;
+import com.scoh.api.domain.NotificationType;
 import com.scoh.api.dto.BookingCreateRequest;
 import com.scoh.api.dto.BookingResponse;
 import com.scoh.api.dto.BookingStatusUpdateRequest;
@@ -59,11 +61,15 @@ class BookingServiceTest {
         });
 
         BookingResponse response = bookingService.createBooking("user-1", request);
+        ArgumentCaptor<NotificationCreateRequest> notificationCaptor =
+                ArgumentCaptor.forClass(NotificationCreateRequest.class);
 
         assertThat(response.getId()).isEqualTo("booking-1");
         assertThat(response.getStatus()).isEqualTo(BookingStatus.PENDING);
         assertThat(response.getResourceId()).isEqualTo("resource-1");
         assertThat(response.getUserId()).isEqualTo("user-1");
+        verify(notificationService, atLeastOnce()).createNotification(notificationCaptor.capture());
+        assertThat(notificationCaptor.getAllValues().get(0).type()).isEqualTo(NotificationType.BOOKING_CREATED);
     }
 
     @Test

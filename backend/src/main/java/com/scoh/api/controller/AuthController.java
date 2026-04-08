@@ -2,7 +2,9 @@ package com.scoh.api.controller;
 
 import com.scoh.api.domain.UserAccount;
 import com.scoh.api.dto.AuthUserResponse;
+import com.scoh.api.exception.ForbiddenOperationException;
 import com.scoh.api.security.SecurityUtils;
+import com.scoh.api.service.UserAccountService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,9 +13,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    private final UserAccountService userAccountService;
+
+    public AuthController(UserAccountService userAccountService) {
+        this.userAccountService = userAccountService;
+    }
+
     @GetMapping("/me")
     public AuthUserResponse me() {
-        UserAccount user = SecurityUtils.currentUser();
+        UserAccount sessionUser = SecurityUtils.currentUser();
+        UserAccount user = userAccountService.findById(sessionUser.getId());
+        if (!user.isActive()) {
+            throw new ForbiddenOperationException("Your account has been deactivated by an administrator.");
+        }
         return new AuthUserResponse(
                 user.getId(),
                 user.getEmail(),

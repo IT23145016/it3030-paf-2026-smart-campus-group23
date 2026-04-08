@@ -2,6 +2,7 @@ package com.scoh.api.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.scoh.api.domain.Notification;
@@ -76,5 +77,18 @@ class NotificationServiceTest {
 
         assertThat(result.id()).isEqualTo("n1");
         assertThat(result.type()).isEqualTo(NotificationType.SYSTEM);
+    }
+
+    @Test
+    void shouldDeleteOwnedNotification() {
+        Notification notification = new Notification();
+        notification.setId("n1");
+        notification.setRecipientUserId("u1");
+
+        when(notificationRepository.findById("n1")).thenReturn(Optional.of(notification));
+
+        notificationService.deleteNotification("n1", "u1");
+
+        verify(notificationRepository).delete(notification);
     }
 }

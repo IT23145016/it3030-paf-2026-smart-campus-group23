@@ -28,3 +28,6 @@ app:
   oauth2:
     success-redirect-url: ${OAUTH_SUCCESS_REDIRECT_URL:http://localhost:5174/auth/callback}
     logout-redirect-url: ${OAUTH_LOGOUT_REDIRECT_URL:http://localhost:5174/}
+  bootstrap:
+    admin-email: ${BOOTSTRAP_ADMIN_EMAIL:mklskodithuwakku@gmail.com}
+    default-user-email: ${BOOTSTRAP_DEFAULT_USER_EMAIL:kmls19kodituwakku@gmail.com}

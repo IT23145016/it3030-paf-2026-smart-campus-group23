@@ -1,6 +1,7 @@
 package com.scoh.api.domain;
 
 public enum NotificationType {
+    BOOKING_CREATED,
     BOOKING_APPROVED,
     BOOKING_REJECTED,
     BOOKING_CANCELLED,

@@ -62,6 +62,14 @@ public class BookingService {
     );
 
     booking = bookingRepository.save(booking);
+    notificationService.createNotification(new NotificationCreateRequest(
+      userId,
+      NotificationType.BOOKING_CREATED,
+      "Booking submitted",
+      "Your booking request has been submitted and is waiting for admin review.",
+      "/bookings",
+      Map.of("bookingId", booking.getId(), "status", booking.getStatus().toString())
+    ));
     return toResponse(booking);
   }
 

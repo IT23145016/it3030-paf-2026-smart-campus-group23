@@ -2,6 +2,7 @@ package com.scoh.api.security;
 
 import com.scoh.api.domain.UserAccount;
 import com.scoh.api.service.UserAccountService;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -28,6 +29,9 @@ public class CustomOidcUserService extends OidcUserService {
         String providerId = oidcUser.getSubject();
 
         UserAccount user = userAccountService.upsertOAuthUser(email, name, picture, provider, providerId);
+        if (!user.isActive()) {
+            throw new DisabledException("This account has been deactivated by an administrator.");
+        }
         return new AppOidcUser(user, oidcUser);
     }
 }

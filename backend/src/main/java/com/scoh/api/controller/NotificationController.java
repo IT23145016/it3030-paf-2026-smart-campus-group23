@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,6 +46,12 @@ public class NotificationController {
     public Map<String, String> markAllAsRead() {
         notificationService.markAllAsRead(SecurityUtils.currentUser().getId());
         return Map.of("message", "All notifications marked as read.");
+    }
+
+    @DeleteMapping("/{notificationId}")
+    public Map<String, String> deleteNotification(@PathVariable String notificationId) {
+        notificationService.deleteNotification(notificationId, SecurityUtils.currentUser().getId());
+        return Map.of("message", "Notification deleted successfully.");
     }
 
     @PostMapping

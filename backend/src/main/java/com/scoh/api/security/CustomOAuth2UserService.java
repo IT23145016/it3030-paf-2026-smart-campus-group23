@@ -3,6 +3,7 @@ package com.scoh.api.security;
 import com.scoh.api.domain.UserAccount;
 import com.scoh.api.service.UserAccountService;
 import java.util.Map;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -32,6 +33,9 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         String providerId = String.valueOf(attributes.get("sub"));
 
         UserAccount user = userAccountService.upsertOAuthUser(email, name, picture, provider, providerId);
+        if (!user.isActive()) {
+            throw new DisabledException("This account has been deactivated by an administrator.");
+        }
         return new AppUserPrincipal(user, attributes);
     }
 }

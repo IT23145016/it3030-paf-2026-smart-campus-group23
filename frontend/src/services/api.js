@@ -12,7 +12,9 @@ async function request(path, options = {}) {
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
-    throw new Error(errorBody.message || "Request failed");
+    const error = new Error(errorBody.message || "Request failed");
+    error.status = response.status;
+    throw error;
   }
 
   if (response.status === 204) {
@@ -53,13 +55,29 @@ export const api = {
   getUnreadCount: () => request("/api/notifications/unread-count"),
   markNotificationRead: (notificationId) =>
     request(`/api/notifications/${notificationId}/read`, { method: "PATCH" }),
+  deleteNotification: (notificationId) =>
+    request(`/api/notifications/${notificationId}`, { method: "DELETE" }),
   markAllNotificationsRead: () =>
     request("/api/notifications/read-all", { method: "PATCH" }),
   getUsers: () => request("/api/admin/users"),
+  createUser: (payload) =>
+    request("/api/admin/users", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    }),
   updateRoles: (userId, roles) =>
     request(`/api/admin/users/${userId}/roles`, {
       method: "PUT",
       body: JSON.stringify({ roles })
+    }),
+  updateUserStatus: (userId, active) =>
+    request(`/api/admin/users/${userId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ active })
+    }),
+  deleteUser: (userId) =>
+    request(`/api/admin/users/${userId}`, {
+      method: "DELETE"
     }),
   createBooking: (payload) =>
     request("/api/bookings", {

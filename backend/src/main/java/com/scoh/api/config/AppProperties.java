@@ -8,6 +8,7 @@ public class AppProperties {
 
     private Cors cors = new Cors();
     private OAuth2 oauth2 = new OAuth2();
+    private Bootstrap bootstrap = new Bootstrap();
 
     public Cors getCors() {
         return cors;
@@ -23,6 +24,14 @@ public class AppProperties {
 
     public void setOauth2(OAuth2 oauth2) {
         this.oauth2 = oauth2;
+    }
+
+    public Bootstrap getBootstrap() {
+        return bootstrap;
+    }
+
+    public void setBootstrap(Bootstrap bootstrap) {
+        this.bootstrap = bootstrap;
     }
 
     public static class Cors {
@@ -55,6 +64,27 @@ public class AppProperties {
 
         public void setLogoutRedirectUrl(String logoutRedirectUrl) {
             this.logoutRedirectUrl = logoutRedirectUrl;
+        }
+    }
+
+    public static class Bootstrap {
+        private String adminEmail = "mklskodithuwakku@gmail.com";
+        private String defaultUserEmail = "kmls19kodituwakku@gmail.com";
+
+        public String getAdminEmail() {
+            return adminEmail;
+        }
+
+        public void setAdminEmail(String adminEmail) {
+            this.adminEmail = adminEmail;
+        }
+
+        public String getDefaultUserEmail() {
+            return defaultUserEmail;
+        }
+
+        public void setDefaultUserEmail(String defaultUserEmail) {
+            this.defaultUserEmail = defaultUserEmail;
         }
     }
 }
