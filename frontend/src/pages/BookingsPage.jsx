@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import Shell from "../components/Shell";
 import { api } from "../services/api";
 
+const STATUS_ORDER = ["PENDING", "APPROVED", "REJECTED", "CANCELLED"];
+
 export default function BookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,125 +54,154 @@ export default function BookingsPage() {
     loadBookings(filters);
   }
 
+  const summary = STATUS_ORDER.reduce((counts, status) => {
+    counts[status] = bookings.filter((booking) => booking.status === status).length;
+    return counts;
+  }, { PENDING: 0, APPROVED: 0, REJECTED: 0, CANCELLED: 0 });
+
   return (
     <Shell title="My Bookings">
-      <section className="table-card">
-        <div className="table-header">
-          <div>
-            <p className="eyebrow">Your Bookings</p>
-            <h3>View and manage your booking requests.</h3>
-          </div>
-          <button type="button" className="secondary-button toolbar-button" onClick={() => loadBookings(filters)}>
-            Refresh
-          </button>
-        </div>
+      <section className="booking-page-shell">
+        <section className="booking-overview-grid">
+          <article className="booking-overview-card booking-overview-intro">
+            <p className="eyebrow">Bookings Overview</p>
+            <h3>Track every request from one clean timeline.</h3>
+            <p className="muted">Filter by status or date, then act on the bookings that still need your attention.</p>
+          </article>
+          <article className="booking-overview-card">
+            <span>Total</span>
+            <strong>{bookings.length}</strong>
+          </article>
+          <article className="booking-overview-card">
+            <span>Pending</span>
+            <strong>{summary.PENDING}</strong>
+          </article>
+          <article className="booking-overview-card">
+            <span>Approved</span>
+            <strong>{summary.APPROVED}</strong>
+          </article>
+        </section>
 
-        <form className="filter-grid" onSubmit={applyFilters}>
-          <label>
-            Status
-            <select name="status" value={filters.status} onChange={handleFilterChange}>
-              <option value="all">All statuses</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </label>
-          <label>
-            Start date
-            <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} />
-          </label>
-          <label>
-            End date
-            <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} />
-          </label>
-          <div className="filter-actions">
-            <button type="submit">Apply filters</button>
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() => {
-                const cleared = { status: "all", startDate: "", endDate: "" };
-                setFilters(cleared);
-                loadBookings(cleared);
-              }}
-            >
-              Clear
+        <section className="table-card booking-panel">
+          <div className="booking-panel-top">
+            <div>
+              <p className="eyebrow">Your Requests</p>
+              <h3>View and manage your booking requests.</h3>
+            </div>
+            <button type="button" className="secondary-button toolbar-button" onClick={() => loadBookings(filters)}>
+              Refresh
             </button>
           </div>
-        </form>
 
-        {error ? <p className="error">{error}</p> : null}
+          <form className="filter-grid booking-filter-grid" onSubmit={applyFilters}>
+            <label>
+              Status
+              <select name="status" value={filters.status} onChange={handleFilterChange}>
+                <option value="all">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </label>
+            <label>
+              Start date
+              <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} />
+            </label>
+            <label>
+              End date
+              <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} />
+            </label>
+            <div className="filter-actions">
+              <button type="submit">Apply filters</button>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => {
+                  const cleared = { status: "all", startDate: "", endDate: "" };
+                  setFilters(cleared);
+                  loadBookings(cleared);
+                }}
+              >
+                Clear
+              </button>
+            </div>
+          </form>
 
-        {loading ? (
-          <div className="booking-empty-state">Loading your bookings...</div>
-        ) : bookings.length === 0 ? (
-          <div className="booking-empty-state">
-            <span className="booking-empty-icon">📅</span>
-            <p>No bookings yet.</p>
-            <a className="secondary-button" href="/resources">Browse Facilities</a>
-          </div>
-        ) : (
-          <div className="booking-list">
-            {bookings.map((booking) => (
-              <article className="booking-card" key={booking.id}>
-                <div className="booking-header">
-                  <div className="booking-title-row">
-                    <span className="booking-icon">🏛️</span>
-                    <div>
-                      <p className="eyebrow">Booking Request</p>
-                      <h4>{booking.resourceName || `Resource #${booking.resourceId}`}</h4>
+          {error ? <p className="error">{error}</p> : null}
+
+          {loading ? (
+            <div className="booking-empty-state">Loading your bookings...</div>
+          ) : bookings.length === 0 ? (
+            <div className="booking-empty-state">
+              <p>No bookings yet.</p>
+              <a className="secondary-button" href="/resources">Browse Facilities</a>
+            </div>
+          ) : (
+            <div className="booking-results">
+              {bookings.map((booking) => (
+                <article className="booking-row" key={booking.id}>
+                  <div className="booking-row-main">
+                    <div className="booking-row-title">
+                      <div>
+                        <p className="eyebrow">Booking Request</p>
+                        <h4>{booking.resourceName || `Resource #${booking.resourceId}`}</h4>
+                      </div>
+                      <span className={`status-pill ${booking.status?.toLowerCase() || "pending"}`}>
+                        {booking.status || "PENDING"}
+                      </span>
+                    </div>
+                    <p className="booking-purpose">{booking.purpose}</p>
+                  </div>
+
+                  <div className="booking-meta-grid">
+                    <div className="booking-meta-item">
+                      <span>Attendees</span>
+                      <strong>{booking.attendees}</strong>
+                    </div>
+                    <div className="booking-meta-item">
+                      <span>Start</span>
+                      <strong>{new Date(booking.startTime).toLocaleString()}</strong>
+                    </div>
+                    <div className="booking-meta-item">
+                      <span>End</span>
+                      <strong>{new Date(booking.endTime).toLocaleString()}</strong>
+                    </div>
+                    <div className="booking-meta-item">
+                      <span>Reference</span>
+                      <strong>{booking.id}</strong>
                     </div>
                   </div>
-                  <span className={`status-pill ${booking.status?.toLowerCase() || "pending"}`}>
-                    {booking.status || "PENDING"}
-                  </span>
-                </div>
-                <div className="booking-details">
-                  <div className="booking-detail-item">
-                    <span className="booking-detail-label">Purpose</span>
-                    <span>{booking.purpose}</span>
-                  </div>
-                  <div className="booking-detail-item">
-                    <span className="booking-detail-label">Attendees</span>
-                    <span>{booking.attendees}</span>
-                  </div>
-                  <div className="booking-detail-item">
-                    <span className="booking-detail-label">Start</span>
-                    <span>{new Date(booking.startTime).toLocaleString()}</span>
-                  </div>
-                  <div className="booking-detail-item">
-                    <span className="booking-detail-label">End</span>
-                    <span>{new Date(booking.endTime).toLocaleString()}</span>
-                  </div>
+
                   {booking.adminNotes ? (
-                    <div className="booking-detail-item booking-admin-note">
-                      <span className="booking-detail-label">Admin Notes</span>
-                      <span>{booking.adminNotes}</span>
+                    <div className="booking-note-block">
+                      <span>Admin Notes</span>
+                      <p>{booking.adminNotes}</p>
                     </div>
                   ) : null}
-                </div>
-                <div className="booking-actions">
-                  {booking.status === "APPROVED" || booking.status === "PENDING" ? (
-                    <button
-                      type="button"
-                      className="secondary-button"
-                      onClick={() => cancelBooking(booking.id)}
-                      disabled={cancellingBooking === booking.id}
-                    >
-                      {cancellingBooking === booking.id ? "Cancelling..." : "Cancel Booking"}
-                    </button>
-                  ) : (
-                    <span className="status-note">
-                      {booking.status === "REJECTED" ? "Booking was rejected" :
-                       booking.status === "CANCELLED" ? "Booking cancelled" : "No actions available"}
-                    </span>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
+
+                  <div className="booking-row-actions">
+                    {booking.status === "APPROVED" || booking.status === "PENDING" ? (
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => cancelBooking(booking.id)}
+                        disabled={cancellingBooking === booking.id}
+                      >
+                        {cancellingBooking === booking.id ? "Cancelling..." : "Cancel Booking"}
+                      </button>
+                    ) : (
+                      <span className="status-note">
+                        {booking.status === "REJECTED" ? "Booking was rejected" :
+                         booking.status === "CANCELLED" ? "Booking cancelled" : "No actions available"}
+                      </span>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       </section>
     </Shell>
   );
