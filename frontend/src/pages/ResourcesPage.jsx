@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import Shell from "../components/Shell";
 import { api } from "../services/api";
@@ -35,6 +35,7 @@ export default function ResourcesPage() {
   const [bookingMessage, setBookingMessage] = useState("");
   const [bookingError, setBookingError] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
+  const bookingSectionRef = useRef(null);
   const { user } = useAuth();
   const activeCount = resources.filter((resource) => resource.status === "ACTIVE").length;
   const maintenanceCount = resources.filter((resource) => resource.status === "MAINTENANCE").length;
@@ -43,6 +44,17 @@ export default function ResourcesPage() {
   useEffect(() => {
     loadResources();
   }, []);
+
+  useEffect(() => {
+    if (!bookingResource || !bookingSectionRef.current) {
+      return;
+    }
+
+    bookingSectionRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }, [bookingResource]);
 
   async function loadResources(nextFilters = filters) {
     setLoading(true);
@@ -83,6 +95,48 @@ export default function ResourcesPage() {
   function handleBookingChange(event) {
     const { name, value } = event.target;
     setBookingForm((current) => ({ ...current, [name]: value }));
+    setBookingError("");
+  }
+
+  function validateBookingAgainstAvailability(resource, form) {
+    if (!form.startTime || !form.endTime) {
+      return null;
+    }
+
+    const start = new Date(form.startTime);
+    const end = new Date(form.endTime);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return "Choose valid start and end times.";
+    }
+
+    if (start.toDateString() !== end.toDateString()) {
+      return "Booking must start and end on the same day.";
+    }
+
+    const dayName = start.toLocaleDateString("en-US", { weekday: "long" }).toUpperCase();
+    const matchingWindows = (resource.availabilityWindows || []).filter(
+      (window) => window.dayOfWeek?.toUpperCase() === dayName
+    );
+
+    if (!matchingWindows.length) {
+      return `This resource is not available on ${formatLabel(dayName)}.`;
+    }
+
+    const startTime = form.startTime.slice(11, 16);
+    const endTime = form.endTime.slice(11, 16);
+    const withinWindow = matchingWindows.some(
+      (window) => startTime >= window.startTime && endTime <= window.endTime
+    );
+
+    if (!withinWindow) {
+      const windowsText = matchingWindows
+        .map((window) => `${window.startTime} - ${window.endTime}`)
+        .join(", ");
+      return `Select a time within ${formatLabel(dayName)} availability: ${windowsText}.`;
+    }
+
+    return null;
   }
 
   async function submitBooking(event) {
@@ -95,6 +149,11 @@ export default function ResourcesPage() {
     setBookingError("");
     setBookingMessage("");
     try {
+      const availabilityError = validateBookingAgainstAvailability(bookingResource, bookingForm);
+      if (availabilityError) {
+        throw new Error(availabilityError);
+      }
+
       await api.createBooking({
         resourceId: bookingResource.id,
         purpose: bookingForm.purpose,
@@ -216,45 +275,86 @@ export default function ResourcesPage() {
       {error ? <p className="error">{error}</p> : null}
 
       {bookingResource ? (
-        <section className="table-card">
-          <div className="table-header">
-            <div>
-              <p className="eyebrow">Booking request</p>
-              <h3>Request a booking for {bookingResource.name}</h3>
-            </div>
-            <button type="button" className="secondary-button" onClick={closeBooking}>
-              Close
-            </button>
-          </div>
+        <section className="booking-request-panel" ref={bookingSectionRef}>
+          <article className="booking-request-summary">
+            <p className="eyebrow">Booking Request</p>
+            <h3>{bookingResource.name}</h3>
+            <p className="muted">Choose a time slot, confirm the attendee count, and explain the purpose of the booking.</p>
 
-          <form className="filter-grid" onSubmit={submitBooking}>
-            <label>
-              Start time
-              <input type="datetime-local" name="startTime" value={bookingForm.startTime} onChange={handleBookingChange} required />
-            </label>
-            <label>
-              End time
-              <input type="datetime-local" name="endTime" value={bookingForm.endTime} onChange={handleBookingChange} required />
-            </label>
-            <label>
-              Attendees
-              <input type="number" min="1" max={bookingResource.capacity} name="attendees" value={bookingForm.attendees} onChange={handleBookingChange} required />
-            </label>
-            <label className="field-full">
-              Purpose
-              <textarea name="purpose" value={bookingForm.purpose} onChange={handleBookingChange} required />
-            </label>
-            <div className="filter-actions">
-              <button type="submit" disabled={bookingLoading}>
-                {bookingLoading ? "Submitting..." : "Submit booking request"}
-              </button>
+            <div className="booking-request-meta">
+              <div>
+                <span>Type</span>
+                <strong>{formatLabel(bookingResource.type)}</strong>
+              </div>
+              <div>
+                <span>Capacity</span>
+                <strong>{bookingResource.capacity} people</strong>
+              </div>
+              <div>
+                <span>Location</span>
+                <strong>{bookingResource.location}</strong>
+              </div>
+              <div>
+                <span>Status</span>
+                <strong>{formatLabel(bookingResource.status)}</strong>
+              </div>
+            </div>
+          </article>
+
+          <article className="table-card booking-request-form-card">
+            <div className="booking-panel-top">
+              <div>
+                <p className="eyebrow">Request Details</p>
+                <h3>Reserve this resource</h3>
+              </div>
               <button type="button" className="secondary-button" onClick={closeBooking}>
-                Cancel
+                Close
               </button>
             </div>
-            {bookingMessage ? <p className="success">{bookingMessage}</p> : null}
-            {bookingError ? <p className="error">{bookingError}</p> : null}
-          </form>
+
+            <form className="booking-request-form" onSubmit={submitBooking}>
+              <label>
+                Start time
+                <input type="datetime-local" name="startTime" value={bookingForm.startTime} onChange={handleBookingChange} required />
+              </label>
+              <label>
+                End time
+                <input type="datetime-local" name="endTime" value={bookingForm.endTime} onChange={handleBookingChange} required />
+              </label>
+              <label>
+                Attendees
+                <input type="number" min="1" max={bookingResource.capacity} name="attendees" value={bookingForm.attendees} onChange={handleBookingChange} required />
+              </label>
+              <label className="field-full">
+                Purpose
+                <textarea
+                  name="purpose"
+                  value={bookingForm.purpose}
+                  onChange={handleBookingChange}
+                  placeholder="Describe the class, meeting, or activity this booking supports..."
+                  required
+                />
+              </label>
+              <div className="field-full booking-availability-note">
+                <span>Available windows</span>
+                <p>
+                  {(bookingResource.availabilityWindows || [])
+                    .map((window) => `${formatLabel(window.dayOfWeek)} ${window.startTime} - ${window.endTime}`)
+                    .join(" • ")}
+                </p>
+              </div>
+              <div className="filter-actions">
+                <button type="submit" disabled={bookingLoading}>
+                  {bookingLoading ? "Submitting..." : "Submit booking request"}
+                </button>
+                <button type="button" className="secondary-button" onClick={closeBooking}>
+                  Cancel
+                </button>
+              </div>
+              {bookingMessage ? <p className="success">{bookingMessage}</p> : null}
+              {bookingError ? <p className="error">{bookingError}</p> : null}
+            </form>
+          </article>
         </section>
       ) : null}
 

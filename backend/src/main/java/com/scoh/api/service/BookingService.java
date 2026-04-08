@@ -3,6 +3,7 @@ package com.scoh.api.service;
 import com.scoh.api.domain.Booking;
 import com.scoh.api.domain.BookingStatus;
 import com.scoh.api.domain.CampusResource;
+import com.scoh.api.domain.AvailabilityWindow;
 import com.scoh.api.domain.NotificationType;
 import com.scoh.api.domain.Role;
 import com.scoh.api.domain.UserAccount;
@@ -17,8 +18,9 @@ import com.scoh.api.repository.CampusResourceRepository;
 import com.scoh.api.service.NotificationService;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +49,7 @@ public class BookingService {
       .orElseThrow(() -> new IllegalArgumentException("Resource not found"));
 
     validateResourceCapacity(request.getAttendees(), resource.getCapacity());
+    validateResourceAvailability(resource, request.getStartTime(), request.getEndTime());
     checkBookingConflict(request.getResourceId(), request.getStartTime(), request.getEndTime());
 
     Booking booking = new Booking(
@@ -275,6 +278,51 @@ public class BookingService {
     if (attendees > capacity) {
       throw new IllegalArgumentException("Number of attendees exceeds resource capacity");
     }
+  }
+
+  private void validateResourceAvailability(CampusResource resource, LocalDateTime startTime, LocalDateTime endTime) {
+    if (resource.getAvailabilityWindows() == null || resource.getAvailabilityWindows().isEmpty()) {
+      throw new IllegalArgumentException("This resource does not have any availability windows configured");
+    }
+
+    if (!startTime.toLocalDate().equals(endTime.toLocalDate())) {
+      throw new IllegalArgumentException("Bookings must start and end on the same day");
+    }
+
+    String bookingDay = startTime.getDayOfWeek().name();
+    LocalTime bookingStart = startTime.toLocalTime();
+    LocalTime bookingEnd = endTime.toLocalTime();
+
+    boolean withinAvailability = resource.getAvailabilityWindows().stream()
+      .filter(window -> bookingDay.equalsIgnoreCase(window.getDayOfWeek()))
+      .anyMatch(window -> isWithinWindow(window, bookingStart, bookingEnd));
+
+    if (!withinAvailability) {
+      String availableWindows = resource.getAvailabilityWindows().stream()
+        .filter(window -> bookingDay.equalsIgnoreCase(window.getDayOfWeek()))
+        .map(window -> window.getStartTime() + " - " + window.getEndTime())
+        .collect(Collectors.joining(", "));
+
+      if (availableWindows.isBlank()) {
+        throw new IllegalArgumentException("This resource is not available on " + formatDayName(bookingDay));
+      }
+
+      throw new IllegalArgumentException(
+        "Booking must be within the resource availability on " + formatDayName(bookingDay) + ": " + availableWindows
+      );
+    }
+  }
+
+  private boolean isWithinWindow(AvailabilityWindow window, LocalTime bookingStart, LocalTime bookingEnd) {
+    LocalTime windowStart = LocalTime.parse(window.getStartTime());
+    LocalTime windowEnd = LocalTime.parse(window.getEndTime());
+    return !bookingStart.isBefore(windowStart) && !bookingEnd.isAfter(windowEnd);
+  }
+
+  private String formatDayName(String dayName) {
+    DayOfWeek dayOfWeek = DayOfWeek.valueOf(dayName.toUpperCase());
+    String normalized = dayOfWeek.name().toLowerCase();
+    return Character.toUpperCase(normalized.charAt(0)) + normalized.substring(1);
   }
 
   private void checkBookingConflict(String resourceId, LocalDateTime startTime, LocalDateTime endTime) {

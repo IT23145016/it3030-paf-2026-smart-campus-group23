@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.scoh.api.domain.Booking;
 import com.scoh.api.domain.BookingStatus;
 import com.scoh.api.domain.CampusResource;
+import com.scoh.api.domain.AvailabilityWindow;
 import com.scoh.api.dto.BookingCreateRequest;
 import com.scoh.api.dto.BookingResponse;
 import com.scoh.api.dto.BookingStatusUpdateRequest;
@@ -104,6 +105,22 @@ class BookingServiceTest {
     }
 
     @Test
+    void shouldRejectBookingOutsideAvailabilityWindow() {
+        BookingCreateRequest request = validCreateRequest();
+        request.setStartTime(LocalDateTime.now().plusDays(1).withHour(18).withMinute(0).withSecond(0).withNano(0));
+        request.setEndTime(LocalDateTime.now().plusDays(1).withHour(19).withMinute(0).withSecond(0).withNano(0));
+        CampusResource resource = activeResource("resource-1", 80);
+
+        when(campusResourceRepository.findById("resource-1")).thenReturn(Optional.of(resource));
+
+        assertThatThrownBy(() -> bookingService.createBooking("user-1", request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Booking must be within the resource availability");
+
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
     void shouldApprovePendingBookingAndNotifyUser() {
         Booking booking = existingBooking("booking-1", "resource-1", "user-1", BookingStatus.PENDING);
         BookingStatusUpdateRequest request = new BookingStatusUpdateRequest();
@@ -170,6 +187,11 @@ class BookingServiceTest {
         CampusResource resource = new CampusResource();
         resource.setId(resourceId);
         resource.setCapacity(capacity);
+        AvailabilityWindow availabilityWindow = new AvailabilityWindow();
+        availabilityWindow.setDayOfWeek(LocalDateTime.now().plusDays(1).getDayOfWeek().name());
+        availabilityWindow.setStartTime("08:00");
+        availabilityWindow.setEndTime("17:00");
+        resource.setAvailabilityWindows(List.of(availabilityWindow));
         return resource;
     }
 
