@@ -868,6 +868,23 @@ p {
   flex-wrap: wrap;
 }
 
+.notification-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.notification-alert {
+  margin-top: 1rem;
+  margin-bottom: 0;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(214, 108, 63, 0.16), rgba(246, 200, 126, 0.28));
+  border: 1px solid rgba(214, 108, 63, 0.22);
+  color: #6f341d;
+  font-weight: 600;
+}
+
 .notification-list {
   display: grid;
   gap: 0.85rem;
