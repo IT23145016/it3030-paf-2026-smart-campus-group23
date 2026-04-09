@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import NotificationPanel from "../components/NotificationPanel";
 import Shell from "../components/Shell";
 import { api } from "../services/api";
 
@@ -155,6 +156,8 @@ export default function DashboardPage() {
               </div>
             </article>
           </section>
+
+          <NotificationPanel />
         </>
       ) : null}
     </Shell>

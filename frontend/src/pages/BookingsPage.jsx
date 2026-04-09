@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import NotificationPanel from "../components/NotificationPanel";
 import Shell from "../components/Shell";
 import { api } from "../services/api";
 
@@ -204,6 +205,7 @@ export default function BookingsPage() {
         </section>
       </section>
 
+      <NotificationPanel />
     </Shell>
   );
 }

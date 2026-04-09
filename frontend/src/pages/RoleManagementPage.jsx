@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import NotificationPanel from "../components/NotificationPanel";
 import Shell from "../components/Shell";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
@@ -10,6 +11,8 @@ const EMPTY_FORM = {
   avatarUrl: "",
   roles: ["USER"]
 };
+const NOTIFICATION_REFRESH_EVENT = "scoh:refresh-notifications";
+
 export default function RoleManagementPage() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
@@ -43,6 +46,7 @@ export default function RoleManagementPage() {
       const updated = await api.updateRoles(userId, nextRoles);
       setUsers((current) => current.map((user) => (user.id === userId ? updated : user)));
       setError("");
+      window.dispatchEvent(new Event(NOTIFICATION_REFRESH_EVENT));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -75,6 +79,7 @@ export default function RoleManagementPage() {
       const updated = await api.updateUserStatus(userId, active);
       setUsers((current) => current.map((user) => (user.id === userId ? updated : user)));
       setError("");
+      window.dispatchEvent(new Event(NOTIFICATION_REFRESH_EVENT));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -104,6 +109,7 @@ export default function RoleManagementPage() {
       setUsers((current) => [created, ...current]);
       setForm(EMPTY_FORM);
       setError("");
+      window.dispatchEvent(new Event(NOTIFICATION_REFRESH_EVENT));
     } catch (err) {
       setError(err.message);
     }
@@ -131,6 +137,7 @@ export default function RoleManagementPage() {
       await api.deleteUser(userId);
       setUsers((current) => current.filter((user) => user.id !== userId));
       setError("");
+      window.dispatchEvent(new Event(NOTIFICATION_REFRESH_EVENT));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -254,6 +261,8 @@ export default function RoleManagementPage() {
           </tbody>
         </table>
       </section>
+
+      <NotificationPanel />
     </Shell>
   );
 }

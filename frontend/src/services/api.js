@@ -51,6 +51,14 @@ export const api = {
     request(`/api/resources/${resourceId}`, {
       method: "DELETE"
     }),
+  getNotifications: () => request("/api/notifications"),
+  getUnreadCount: () => request("/api/notifications/unread-count"),
+  markNotificationRead: (notificationId) =>
+    request(`/api/notifications/${notificationId}/read`, { method: "PATCH" }),
+  deleteNotification: (notificationId) =>
+    request(`/api/notifications/${notificationId}`, { method: "DELETE" }),
+  markAllNotificationsRead: () =>
+    request("/api/notifications/read-all", { method: "PATCH" }),
   getUsers: () => request("/api/admin/users"),
   createUser: (payload) =>
     request("/api/admin/users", {

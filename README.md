@@ -42,6 +42,14 @@ This repository contains a full-stack application with:
 - Review and update booking statuses
 - Track pending, approved, rejected, and cancelled bookings
 
+### Notifications
+
+- View user notifications
+- Track unread notification counts
+- Mark single or all notifications as read
+- Delete notifications
+- Create automatic notifications for booking, role, and ticket-related events
+
 ### User and Role Management
 
 - Manage users with role-based permissions
@@ -67,6 +75,12 @@ This repository contains a full-stack application with:
 - `GET /api/bookings`
 - `POST /api/bookings`
 - `PATCH /api/bookings/{bookingId}/status`
+- `GET /api/notifications`
+- `GET /api/notifications/unread-count`
+- `PATCH /api/notifications/{notificationId}/read`
+- `PATCH /api/notifications/read-all`
+- `POST /api/notifications`
+- `DELETE /api/notifications/{notificationId}`
 - `GET /api/admin/users`
 - `POST /api/admin/users`
 - `PUT /api/admin/users/{userId}/roles`

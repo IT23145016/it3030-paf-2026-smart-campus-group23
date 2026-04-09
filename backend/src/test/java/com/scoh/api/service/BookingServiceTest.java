@@ -3,16 +3,20 @@ package com.scoh.api.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.scoh.api.domain.Booking;
 import com.scoh.api.domain.BookingStatus;
 import com.scoh.api.domain.CampusResource;
 import com.scoh.api.domain.AvailabilityWindow;
+import com.scoh.api.domain.NotificationType;
 import com.scoh.api.dto.BookingCreateRequest;
 import com.scoh.api.dto.BookingResponse;
 import com.scoh.api.dto.BookingStatusUpdateRequest;
+import com.scoh.api.dto.NotificationCreateRequest;
 import com.scoh.api.exception.BookingConflictException;
 import com.scoh.api.exception.ForbiddenOperationException;
 import com.scoh.api.repository.BookingRepository;
@@ -36,6 +40,9 @@ class BookingServiceTest {
     @Mock
     private CampusResourceRepository campusResourceRepository;
 
+    @Mock
+    private NotificationService notificationService;
+
     @InjectMocks
     private BookingService bookingService;
 
@@ -54,11 +61,15 @@ class BookingServiceTest {
         });
 
         BookingResponse response = bookingService.createBooking("user-1", request);
+        ArgumentCaptor<NotificationCreateRequest> notificationCaptor =
+                ArgumentCaptor.forClass(NotificationCreateRequest.class);
 
         assertThat(response.getId()).isEqualTo("booking-1");
         assertThat(response.getStatus()).isEqualTo(BookingStatus.PENDING);
         assertThat(response.getResourceId()).isEqualTo("resource-1");
         assertThat(response.getUserId()).isEqualTo("user-1");
+        verify(notificationService, atLeastOnce()).createNotification(notificationCaptor.capture());
+        assertThat(notificationCaptor.getAllValues().get(0).type()).isEqualTo(NotificationType.BOOKING_CREATED);
     }
 
     @Test
@@ -126,9 +137,16 @@ class BookingServiceTest {
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         BookingResponse response = bookingService.updateBookingStatus("booking-1", request);
+        ArgumentCaptor<NotificationCreateRequest> notificationCaptor =
+                ArgumentCaptor.forClass(NotificationCreateRequest.class);
+
+        verify(notificationService).createNotification(notificationCaptor.capture());
+        NotificationCreateRequest notification = notificationCaptor.getValue();
 
         assertThat(response.getStatus()).isEqualTo(BookingStatus.APPROVED);
         assertThat(response.getAdminNotes()).isEqualTo("Approved for the lecture.");
+        assertThat(notification.recipientUserId()).isEqualTo("user-1");
+        assertThat(notification.title()).isEqualTo("Booking approved");
     }
 
     @Test
@@ -139,8 +157,13 @@ class BookingServiceTest {
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         BookingResponse response = bookingService.cancelBooking("booking-1", "user-1");
+        ArgumentCaptor<NotificationCreateRequest> notificationCaptor =
+                ArgumentCaptor.forClass(NotificationCreateRequest.class);
+
+        verify(notificationService).createNotification(notificationCaptor.capture());
 
         assertThat(response.getStatus()).isEqualTo(BookingStatus.CANCELLED);
+        assertThat(notificationCaptor.getValue().title()).isEqualTo("Booking cancelled");
     }
 
     @Test
@@ -152,6 +175,8 @@ class BookingServiceTest {
         assertThatThrownBy(() -> bookingService.cancelBooking("booking-1", "user-2"))
                 .isInstanceOf(ForbiddenOperationException.class)
                 .hasMessageContaining("own bookings");
+
+        verify(notificationService, never()).createNotification(any(NotificationCreateRequest.class));
     }
 
     private BookingCreateRequest validCreateRequest() {
