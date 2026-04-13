@@ -146,7 +146,7 @@ export default function TicketsPage() {
 
       <section className="table-card">
         <div className="table-header">
-          <h3>Create inciden ticket</h3>
+          <h3>Create incident ticket</h3>
         </div>
         <form className="resource-form" onSubmit={createTicket}>
           <label>
