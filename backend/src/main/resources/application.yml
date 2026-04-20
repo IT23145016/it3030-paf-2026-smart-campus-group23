@@ -18,6 +18,10 @@ spring:
               - openid
               - profile
               - email
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
 
 server:
   port: ${PORT:8081}

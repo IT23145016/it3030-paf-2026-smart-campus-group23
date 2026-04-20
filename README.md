@@ -1,127 +1,219 @@
-# Smart Campus Operations Hub
+# 🚀 Smart Campus Operations Hub
 
-Smart Campus Operations Hub is a group project for the IT3030 PAF assignment. The system helps manage campus resources, bookings, notifications, user roles, and authentication in one shared platform.
+A full-stack **Smart Campus Management System** developed for the **IT3030 – Programming Applications and Frameworks (PAF)** assignment at SLIIT.
+This platform integrates multiple campus services into a **single, secure, and scalable system** to improve operational efficiency and user experience.
 
-## Project Overview
+---
 
-This repository contains a full-stack application with:
+## 📌 Project Overview
 
-- A Spring Boot backend for APIs, business logic, security, and MongoDB persistence
-- A React + Vite frontend for the user interface
-- Shared functionality that supports all four team members' modules in a single system
+The system provides a centralized solution for managing:
 
-## Member Allocation
+* 📚 Campus resources
+* 📅 Smart bookings with conflict detection
+* 🛠️ Incident reporting and resolution workflows
+* 🔔 Notifications and alerts
+* 👤 User roles and secure authentication
 
-- Member 1: facilities catalogue and resource management
-- Member 2: booking workflow and conflict checking
-- Member 3: incident ticketing and technician updates
-- Member 4: notifications, role management, and OAuth 2.0 integration
+### 🏗️ Architecture
 
-## Common Features Across All 4 Members
+* **Backend**: Spring Boot (REST APIs, Business Logic, Security)
+* **Frontend**: React + Vite (Responsive UI)
+* **Database**: MongoDB (NoSQL persistence)
 
-- Centralized campus resource management
-- Booking creation, review, approval, rejection, and cancellation flows
-- Notification support for important user and system updates
-- Role-based access control for different user types
-- Secure authentication and Google OAuth login
-- MongoDB persistence for users, resources, bookings, and notifications
-- Frontend and backend integration through REST APIs
+---
 
-## Main Functional Areas
+## 👥 Team Member Contributions
 
-### Resource Management
+Each member is responsible for a clearly defined module:
 
-- Create and manage campus resources
-- Update resource details, status, and availability windows
-- View available resources from the frontend
+---
 
-### Booking Management
+### 👤 Member 1 — Resource Management
 
-- Submit bookings for resources
-- Prevent conflicting bookings
-- Review and update booking statuses
-- Track pending, approved, rejected, and cancelled bookings
+**Scope: Facilities Catalogue & Resource Control**
 
-### Notifications
+#### 🔹 Features
 
-- View user notifications
-- Track unread notification counts
-- Mark single or all notifications as read
-- Delete notifications
-- Create automatic notifications for booking, role, and ticket-related events
+* Create, update, and delete campus resources
+* Manage availability and operational status
+* Categorize resources (labs, halls, equipment)
+* Provide resource listing for frontend consumption
 
-### User and Role Management
+#### 🔹 APIs
 
-- Manage users with role-based permissions
-- Assign roles such as `ADMIN`, `USER`, and `TECHNICIAN`
-- Activate, deactivate, and delete user accounts
+```http
+GET    /api/resources
+POST   /api/resources
+PUT    /api/resources/{resourceId}
+PATCH  /api/resources/{resourceId}/status
+DELETE /api/resources/{resourceId}
+```
 
-### Authentication and Security
+---
 
-- Spring Security based route and API protection
-- Google OAuth login support
-- Authenticated user profile lookup
-- Restricted admin and technician operations
+### 👤 Member 2 — Booking Management
 
-## Backend API Highlights
+**Scope: Booking Workflow & Conflict Handling**
 
-- `GET /api/health`
-- `GET /api/auth/me`
-- `GET /api/resources`
-- `POST /api/resources`
-- `PUT /api/resources/{resourceId}`
-- `PATCH /api/resources/{resourceId}/status`
-- `DELETE /api/resources/{resourceId}`
-- `GET /api/bookings`
-- `POST /api/bookings`
-- `PATCH /api/bookings/{bookingId}/status`
-- `GET /api/notifications`
-- `GET /api/notifications/unread-count`
-- `PATCH /api/notifications/{notificationId}/read`
-- `PATCH /api/notifications/read-all`
-- `POST /api/notifications`
-- `DELETE /api/notifications/{notificationId}`
-- `GET /api/admin/users`
-- `POST /api/admin/users`
-- `PUT /api/admin/users/{userId}/roles`
-- `PATCH /api/admin/users/{userId}/status`
-- `DELETE /api/admin/users/{userId}`
-- `POST /api/integrations/tickets/notify`
+#### 🔹 Features
 
-## Tech Stack
+* Submit booking requests for resources
+* Prevent overlapping/conflicting bookings
+* Admin approval and rejection workflow
+* Track booking lifecycle:
 
-- Backend: Spring Boot, Spring Security, Spring Data MongoDB, OAuth2 Client, Maven
-- Frontend: React, React Router, Vite
-- Database: MongoDB
+  ```
+  PENDING → APPROVED → REJECTED → CANCELLED
+  ```
 
-## Local Setup
+#### 🔹 APIs
 
-1. Create `backend/.env` from `backend/.env.example`.
-2. Create `frontend/.env` from `frontend/.env.example` if needed.
-3. Add MongoDB and Google OAuth credentials.
-4. Start the backend on port `8081`.
-5. Start the frontend on port `5174`.
+```http
+GET    /api/bookings
+POST   /api/bookings
+DELETE /api/bookings/{bookingId}
+GET    /api/bookings/admin
+PATCH  /api/bookings/admin/{bookingId}/status
+```
 
-## Run the Backend
+---
+
+### 👤 Member 3 — Incident Management
+
+**Scope: Tickets, Attachments & Technician Workflow**
+
+#### 🔹 Features
+
+* Report incidents linked to campus resources
+* Capture detailed information:
+
+  * Category, priority, location, description
+* Upload image evidence (JPG/PNG)
+* Ticket workflow:
+
+  ```
+  OPEN → IN_PROGRESS → RESOLVED → CLOSED
+  ```
+* Assign technicians
+* Add updates and maintain comment history
+* Reject tickets with reason (admin control)
+* Store resolution notes
+
+#### 🔹 APIs
+
+```http
+POST   /api/tickets
+GET    /api/tickets
+GET    /api/tickets/{ticketId}
+PUT    /api/tickets/{ticketId}
+PATCH  /api/tickets/{ticketId}/status
+PATCH  /api/tickets/{ticketId}/assign
+POST   /api/tickets/{ticketId}/updates
+PATCH  /api/tickets/{ticketId}/updates/{updateId}
+DELETE /api/tickets/{ticketId}/updates/{updateId}
+POST   /api/tickets/{ticketId}/attachments
+GET    /api/tickets/{ticketId}/attachments
+DELETE /api/tickets/{ticketId}
+```
+
+---
+
+### 👤 Member 4 — Notifications & User Management
+
+**Scope: Notifications, Roles & OAuth Integration**
+
+#### 🔹 Features
+
+* Real-time user notifications
+* Track unread notifications
+* Mark notifications as read
+* Role-based user management:
+
+  * ADMIN, USER, TECHNICIAN
+* Google OAuth 2.0 login integration
+* User activation, deactivation, and role assignment
+
+#### 🔹 APIs
+
+```http
+GET    /api/notifications
+GET    /api/notifications/unread-count
+PATCH  /api/notifications/{notificationId}/read
+PATCH  /api/notifications/read-all
+POST   /api/notifications
+DELETE /api/notifications/{notificationId}
+
+GET    /api/admin/users
+POST   /api/admin/users
+PUT    /api/admin/users/{userId}/roles
+PATCH  /api/admin/users/{userId}/status
+DELETE /api/admin/users/{userId}
+```
+
+---
+
+## 🌟 Core System Features
+
+* ✅ Centralized campus management platform
+* ✅ RESTful API architecture
+* ✅ Role-based access control
+* ✅ Secure authentication (Spring Security + OAuth)
+* ✅ MongoDB data persistence
+* ✅ Clean and responsive UI
+* ✅ Modular design for team collaboration
+
+---
+
+## 🖥️ UI Modules Overview
+
+| Route             | Description                      |
+| ----------------- | -------------------------------- |
+| `/resources`      | View and manage campus resources |
+| `/bookings`       | Submit and track bookings        |
+| `/tickets`        | Create and view incident tickets |
+| `/tickets/manage` | Admin & technician dashboard     |
+| `/notifications`  | View alerts and updates          |
+| `/admin/users`    | Manage users and roles           |
+
+---
+
+## ⚙️ Tech Stack
+
+| Layer          | Technology                          |
+| -------------- | ----------------------------------- |
+| Backend        | Spring Boot, Spring Security, Maven |
+| Frontend       | React, Vite, React Router           |
+| Database       | MongoDB                             |
+| Authentication | OAuth 2.0 (Google)                  |
+
+---
+
+## 🛠️ Local Setup
+
+### 1️⃣ Configure Environment
+
+* Create `.env` files for backend and frontend
+* Add MongoDB and OAuth credentials
+
+---
+
+### 2️⃣ Run Backend
 
 ```powershell
 cd backend
-$env:JAVA_HOME="C:\Program Files\Java\latest\jdk-21"
+$env:JAVA_HOME="C:\Program Files\Java\jdk-21"
 $env:Path="$env:JAVA_HOME\bin;$env:Path"
 .\apache-maven-3.9.9\bin\mvn.cmd spring-boot:run
 ```
 
-## Run the Frontend
+---
 
-```powershell
+### 3️⃣ Run Frontend
+
+```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-## Integration Notes
-
-- Resource, booking, notification, and user modules are designed to work together as one platform.
-- Booking and ticket workflows can trigger notifications for users.
-- OAuth login creates or updates user records while preserving roles.
-- Admin features are protected through role-based authorization.

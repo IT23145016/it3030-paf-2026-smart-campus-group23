@@ -180,6 +180,16 @@ export default function Shell({ title, children }) {
               My Bookings
             </Link>
           ) : null}
+          {user ? (
+            <Link to="/tickets" onClick={closeMenu}>
+              Incident Tickets
+            </Link>
+          ) : null}
+          {user?.roles?.some((role) => role === "ADMIN" || role === "TECHNICIAN") ? (
+            <Link to="/tickets/manage" onClick={closeMenu}>
+              Ticket Operations
+            </Link>
+          ) : null}
           {user?.roles?.includes("ADMIN") ? (
             <>
               <Link to="/admin/resources" onClick={closeMenu}>
@@ -316,3 +326,4 @@ function BellIcon() {
     </svg>
   );
 }
+

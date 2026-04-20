@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
-import { AdminRoute, ProtectedRoute, PublicOnlyRoute } from "./components/RouteGuards";
+import { AdminRoute, OperationsRoute, ProtectedRoute, PublicOnlyRoute } from "./components/RouteGuards";
 import LandingPage from "./pages/LandingPage";
 import SignInPage from "./pages/SignInPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -10,6 +10,8 @@ import ResourcesPage from "./pages/ResourcesPage";
 import ResourceAdminPage from "./pages/ResourceAdminPage";
 import BookingsPage from "./pages/BookingsPage";
 import AdminBookingsPage from "./pages/AdminBookingsPage";
+import TicketsPage from "./pages/TicketsPage";
+import TicketOperationsPage from "./pages/TicketOperationsPage";
 
 export default function App() {
   return (
@@ -23,6 +25,22 @@ export default function App() {
             <ProtectedRoute>
               <BookingsPage />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tickets"
+          element={
+            <ProtectedRoute>
+              <TicketsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tickets/manage"
+          element={
+            <OperationsRoute>
+              <TicketOperationsPage />
+            </OperationsRoute>
           }
         />
         <Route
