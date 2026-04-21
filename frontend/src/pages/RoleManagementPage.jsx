@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import NotificationPanel from "../components/NotificationPanel";
 import Shell from "../components/Shell";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
@@ -261,8 +260,6 @@ export default function RoleManagementPage() {
           </tbody>
         </table>
       </section>
-
-      <NotificationPanel />
     </Shell>
   );
 }

@@ -5,6 +5,12 @@ import { useAuth } from "../contexts/AuthContext";
 
 const POLL_INTERVAL_MS = 15000;
 const REFRESH_EVENT_NAME = "scoh:refresh-notifications";
+const FILTER_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "booking", label: "Booking" },
+  { value: "tickets", label: "Tickets" },
+  { value: "comments", label: "Comments" }
+];
 
 export default function NotificationPanel() {
   const { user, setUser } = useAuth();
@@ -15,6 +21,8 @@ export default function NotificationPanel() {
   const [alertMessage, setAlertMessage] = useState("");
   const [preferencesSaving, setPreferencesSaving] = useState(false);
   const [preferencesMessage, setPreferencesMessage] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
   const [preferences, setPreferences] = useState({
     bookingDecisionsEnabled: true,
     ticketStatusChangesEnabled: true,
@@ -23,6 +31,7 @@ export default function NotificationPanel() {
   const panelRef = useRef(null);
   const unreadIdsRef = useRef(new Set());
   const hasLoadedRef = useRef(false);
+  const filteredNotifications = notifications.filter((notification) => matchesFilter(notification, activeFilter));
 
   useEffect(() => {
     if (!user?.notificationPreferences) {
@@ -206,6 +215,15 @@ export default function NotificationPanel() {
           <h2>{count} unread</h2>
         </div>
         <div className="notification-toolbar">
+          <button
+            type="button"
+            className="secondary-button notification-settings-button"
+            onClick={() => setSettingsOpen((current) => !current)}
+            aria-label="Notification settings"
+            title="Notification settings"
+          >
+            <SettingsIcon />
+          </button>
           <button type="button" className="secondary-button" onClick={() => loadNotifications({ silent: true })}>
             Refresh
           </button>
@@ -218,48 +236,63 @@ export default function NotificationPanel() {
       {alertMessage ? <p className="notification-alert">{alertMessage}</p> : null}
       {error ? <p className="error">{error}</p> : null}
 
-      <form className="notification-preferences-card" onSubmit={savePreferences}>
-        <div>
-          <p className="eyebrow">Preferences</p>
-          <h3>Choose which alerts reach your inbox.</h3>
-        </div>
-        <label className="notification-toggle">
-          <input
-            type="checkbox"
-            name="bookingDecisionsEnabled"
-            checked={preferences.bookingDecisionsEnabled}
-            onChange={handlePreferenceChange}
-          />
-          <span>Booking approval and rejection</span>
-        </label>
-        <label className="notification-toggle">
-          <input
-            type="checkbox"
-            name="ticketStatusChangesEnabled"
-            checked={preferences.ticketStatusChangesEnabled}
-            onChange={handlePreferenceChange}
-          />
-          <span>Ticket status changes</span>
-        </label>
-        <label className="notification-toggle">
-          <input
-            type="checkbox"
-            name="ticketCommentsEnabled"
-            checked={preferences.ticketCommentsEnabled}
-            onChange={handlePreferenceChange}
-          />
-          <span>New comments on my tickets</span>
-        </label>
-        <div className="notification-preferences-actions">
-          <button type="submit" disabled={preferencesSaving}>
-            {preferencesSaving ? "Saving..." : "Save preferences"}
+      {settingsOpen ? (
+        <form className="notification-preferences-card" onSubmit={savePreferences}>
+          <div>
+            <p className="eyebrow">Preferences</p>
+            <h3>Choose which alerts reach your inbox.</h3>
+          </div>
+          <label className="notification-toggle">
+            <input
+              type="checkbox"
+              name="bookingDecisionsEnabled"
+              checked={preferences.bookingDecisionsEnabled}
+              onChange={handlePreferenceChange}
+            />
+            <span>Booking approval and rejection</span>
+          </label>
+          <label className="notification-toggle">
+            <input
+              type="checkbox"
+              name="ticketStatusChangesEnabled"
+              checked={preferences.ticketStatusChangesEnabled}
+              onChange={handlePreferenceChange}
+            />
+            <span>Ticket status changes</span>
+          </label>
+          <label className="notification-toggle">
+            <input
+              type="checkbox"
+              name="ticketCommentsEnabled"
+              checked={preferences.ticketCommentsEnabled}
+              onChange={handlePreferenceChange}
+            />
+            <span>New comments on my tickets</span>
+          </label>
+          <div className="notification-preferences-actions">
+            <button type="submit" disabled={preferencesSaving}>
+              {preferencesSaving ? "Saving..." : "Save preferences"}
+            </button>
+            {preferencesMessage ? <p className="muted">{preferencesMessage}</p> : null}
+          </div>
+        </form>
+      ) : null}
+
+      <div className="notification-filter-bar" aria-label="Notification filters">
+        {FILTER_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            className={`secondary-button notification-filter-chip ${activeFilter === option.value ? "active" : ""}`}
+            onClick={() => setActiveFilter(option.value)}
+          >
+            {option.label}
           </button>
-          {preferencesMessage ? <p className="muted">{preferencesMessage}</p> : null}
-        </div>
-      </form>
+        ))}
+      </div>
 
       <div className="notification-list">
-        {notifications.map((notification) => (
+        {filteredNotifications.map((notification) => (
           <article className={`notification-card ${notification.read ? "read" : ""}`} key={notification.id}>
             <span className="badge">{notification.type.replaceAll("_", " ")}</span>
             <h3>{notification.title}</h3>
@@ -276,8 +309,49 @@ export default function NotificationPanel() {
             </div>
           </article>
         ))}
-        {!notifications.length && !error ? <p className="muted">No notifications yet.</p> : null}
+        {!filteredNotifications.length && !error ? <p className="muted">No notifications found for this filter.</p> : null}
       </div>
     </section>
+  );
+}
+
+function matchesFilter(notification, filter) {
+  if (filter === "all") {
+    return true;
+  }
+
+  if (filter === "booking") {
+    return notification.type === "BOOKING_APPROVED" || notification.type === "BOOKING_REJECTED";
+  }
+
+  if (filter === "tickets") {
+    return notification.type === "TICKET_STATUS_CHANGED";
+  }
+
+  if (filter === "comments") {
+    return notification.type === "TICKET_COMMENT_ADDED";
+  }
+
+  return true;
+}
+
+function SettingsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M19 12a7 7 0 0 0-.08-1l2.02-1.57-1.9-3.29-2.47.67a7.7 7.7 0 0 0-1.73-1L14.5 3h-5l-.34 2.81a7.7 7.7 0 0 0-1.73 1l-2.47-.67-1.9 3.29L5.08 11A7 7 0 0 0 5 12c0 .34.03.68.08 1l-2.02 1.57 1.9 3.29 2.47-.67c.53.41 1.11.75 1.73 1L9.5 21h5l.34-2.81c.62-.25 1.2-.59 1.73-1l2.47.67 1.9-3.29L18.92 13c.05-.32.08-.66.08-1Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

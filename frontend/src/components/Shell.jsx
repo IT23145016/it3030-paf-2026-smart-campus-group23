@@ -12,7 +12,7 @@ export default function Shell({ title, children }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationAlert, setNotificationAlert] = useState("");
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
-  const notificationHref = user?.roles?.includes("ADMIN") ? "/dashboard#notifications" : "/bookings#notifications";
+  const notificationHref = "/notifications";
   const knownUnreadIdsRef = useRef([]);
   const initials = user?.fullName
     ? user.fullName
@@ -183,6 +183,11 @@ export default function Shell({ title, children }) {
           {user ? (
             <Link to="/tickets" onClick={closeMenu}>
               Incident Tickets
+            </Link>
+          ) : null}
+          {user ? (
+            <Link to="/notifications" onClick={closeMenu}>
+              Notifications
             </Link>
           ) : null}
           {user?.roles?.some((role) => role === "ADMIN" || role === "TECHNICIAN") ? (
