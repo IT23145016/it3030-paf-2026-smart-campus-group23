@@ -47,15 +47,18 @@ public class IncidentTicketService {
     private final IncidentTicketRepository incidentTicketRepository;
     private final CampusResourceRepository campusResourceRepository;
     private final UserAccountService userAccountService;
+    private final NotificationService notificationService;
     private final Path attachmentRoot;
 
     public IncidentTicketService(
             IncidentTicketRepository incidentTicketRepository,
             CampusResourceRepository campusResourceRepository,
-            UserAccountService userAccountService) {
+            UserAccountService userAccountService,
+            NotificationService notificationService) {
         this.incidentTicketRepository = incidentTicketRepository;
         this.campusResourceRepository = campusResourceRepository;
         this.userAccountService = userAccountService;
+        this.notificationService = notificationService;
         this.attachmentRoot = Path.of("uploads", "tickets").toAbsolutePath().normalize();
     }
 
@@ -145,6 +148,7 @@ public class IncidentTicketService {
         IncidentTicket ticket = findActiveTicket(ticketId);
         enforceOperationalWriteAccess(ticket, currentUser);
         validateStatusTransition(ticket, request, currentUser);
+        TicketStatus previousStatus = ticket.getStatus();
 
         ticket.setStatus(request.status());
         if (request.status() == TicketStatus.REJECTED) {
@@ -156,7 +160,9 @@ public class IncidentTicketService {
           }
         }
 
-        return toResponse(incidentTicketRepository.save(ticket));
+        IncidentTicket savedTicket = incidentTicketRepository.save(ticket);
+        notifyTicketStatusChange(savedTicket, previousStatus, currentUser.getId());
+        return toResponse(savedTicket);
     }
 
     public TicketResponse assignTechnician(String ticketId, TicketAssignmentRequest request, UserAccount currentUser) {
@@ -188,6 +194,7 @@ public class IncidentTicketService {
 
         ticket.getUpdates().add(update);
         incidentTicketRepository.save(ticket);
+        notifyTicketCommentAdded(ticket, currentUser.getId(), currentUser.getFullName());
         return toUpdateResponse(update);
     }
 
@@ -425,5 +432,38 @@ public class IncidentTicketService {
     private String extractExtension(String originalFileName) {
         int extensionIndex = originalFileName.lastIndexOf('.');
         return extensionIndex >= 0 ? originalFileName.substring(extensionIndex) : "";
+    }
+
+    private void notifyTicketStatusChange(IncidentTicket ticket, TicketStatus previousStatus, String actorUserId) {
+        String nextStatus = ticket.getStatus().name();
+        if (!ticket.getCreatedByUserId().equals(actorUserId)) {
+            notificationService.createTicketStatusNotification(
+                    ticket,
+                    ticket.getCreatedByUserId(),
+                    previousStatus.name(),
+                    nextStatus);
+        }
+
+        if (ticket.getAssignedToUserId() != null
+                && !ticket.getAssignedToUserId().equals(ticket.getCreatedByUserId())
+                && !ticket.getAssignedToUserId().equals(actorUserId)) {
+            notificationService.createTicketStatusNotification(
+                    ticket,
+                    ticket.getAssignedToUserId(),
+                    previousStatus.name(),
+                    nextStatus);
+        }
+    }
+
+    private void notifyTicketCommentAdded(IncidentTicket ticket, String actorUserId, String actorName) {
+        if (!ticket.getCreatedByUserId().equals(actorUserId)) {
+            notificationService.createTicketCommentNotification(ticket, ticket.getCreatedByUserId(), actorName);
+        }
+
+        if (ticket.getAssignedToUserId() != null
+                && !ticket.getAssignedToUserId().equals(ticket.getCreatedByUserId())
+                && !ticket.getAssignedToUserId().equals(actorUserId)) {
+            notificationService.createTicketCommentNotification(ticket, ticket.getAssignedToUserId(), actorName);
+        }
     }
 }

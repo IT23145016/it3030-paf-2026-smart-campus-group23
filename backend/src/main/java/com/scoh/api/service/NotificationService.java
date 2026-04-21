@@ -1,14 +1,16 @@
 package com.scoh.api.service;
 
 import com.scoh.api.domain.Notification;
+import com.scoh.api.domain.Booking;
 import com.scoh.api.domain.NotificationType;
+import com.scoh.api.domain.IncidentTicket;
 import com.scoh.api.domain.UserAccount;
 import com.scoh.api.dto.NotificationCreateRequest;
 import com.scoh.api.dto.NotificationResponse;
-import com.scoh.api.dto.TicketNotificationRequest;
 import com.scoh.api.exception.ForbiddenOperationException;
 import com.scoh.api.exception.NotFoundException;
 import com.scoh.api.repository.NotificationRepository;
+import com.scoh.api.repository.UserAccountRepository;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
@@ -17,9 +19,13 @@ import org.springframework.stereotype.Service;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final UserAccountRepository userAccountRepository;
 
-    public NotificationService(NotificationRepository notificationRepository) {
+    public NotificationService(
+            NotificationRepository notificationRepository,
+            UserAccountRepository userAccountRepository) {
         this.notificationRepository = notificationRepository;
+        this.userAccountRepository = userAccountRepository;
     }
 
     public NotificationResponse createNotification(NotificationCreateRequest request) {
@@ -34,73 +40,56 @@ public class NotificationService {
         return toResponse(notificationRepository.save(notification));
     }
 
-    public NotificationResponse createTicketNotification(TicketNotificationRequest request) {
-        if (request.type() != NotificationType.TICKET_STATUS_CHANGED
-                && request.type() != NotificationType.TICKET_COMMENT_ADDED) {
-            throw new IllegalArgumentException("Ticket notifications must use a ticket-related notification type.");
+    public void createBookingDecisionNotification(Booking booking, boolean approved) {
+        NotificationType type = approved ? NotificationType.BOOKING_APPROVED : NotificationType.BOOKING_REJECTED;
+        if (!isNotificationEnabled(booking.getUserId(), type)) {
+            return;
         }
-
-        return createNotification(new NotificationCreateRequest(
-                request.recipientUserId(),
-                request.type(),
-                request.title(),
-                request.message(),
-                request.targetUrl() != null && !request.targetUrl().isBlank()
-                        ? request.targetUrl()
-                        : "/tickets/" + request.ticketId(),
-                request.metadata()));
+        createNotification(new NotificationCreateRequest(
+                booking.getUserId(),
+                type,
+                approved ? "Booking approved" : "Booking rejected",
+                approved
+                        ? "Your booking request has been approved."
+                        : "Your booking request was rejected.",
+                "/bookings",
+                Map.of("bookingId", booking.getId(), "status", booking.getStatus().toString())));
     }
 
-    public void createRoleUpdateNotification(UserAccount user) {
-        Notification notification = new Notification();
-        notification.setRecipientUserId(user.getId());
-        notification.setType(NotificationType.ROLE_UPDATED);
-        notification.setTitle("Your access level changed");
-        notification.setMessage("Your roles were updated to: " + user.getRoles());
-        notification.setMetadata(Map.of("roles", user.getRoles()));
-        notification.setRead(false);
-        notificationRepository.save(notification);
-    }
-
-    public void createAccountCreatedNotification(UserAccount user) {
-        createSystemNotification(
-                user.getId(),
-                "Account created",
-                "An administrator created your account with roles: " + user.getRoles(),
-                Map.of("roles", user.getRoles(), "active", user.isActive()),
-                "/bookings#notifications");
-    }
-
-    public void createAccountStatusNotification(UserAccount user) {
-        createSystemNotification(
-                user.getId(),
-                user.isActive() ? "Account activated" : "Account deactivated",
-                user.isActive()
-                        ? "Your account has been activated by an administrator."
-                        : "Your account has been deactivated by an administrator.",
-                Map.of("active", user.isActive()),
-                "/bookings#notifications");
-    }
-
-    public void createAdminAuditNotification(String adminUserId, String title, String message, Map<String, Object> metadata) {
-        createSystemNotification(adminUserId, title, message, metadata, "/admin/roles#notifications");
-    }
-
-    private void createSystemNotification(
+    public void createTicketStatusNotification(
+            IncidentTicket ticket,
             String recipientUserId,
-            String title,
-            String message,
-            Map<String, Object> metadata,
-            String targetUrl) {
-        Notification notification = new Notification();
-        notification.setRecipientUserId(recipientUserId);
-        notification.setType(NotificationType.SYSTEM);
-        notification.setTitle(title);
-        notification.setMessage(message);
-        notification.setTargetUrl(targetUrl);
-        notification.setMetadata(metadata);
-        notification.setRead(false);
-        notificationRepository.save(notification);
+            String previousStatus,
+            String nextStatus) {
+        if (!isNotificationEnabled(recipientUserId, NotificationType.TICKET_STATUS_CHANGED)) {
+            return;
+        }
+        createNotification(new NotificationCreateRequest(
+                recipientUserId,
+                NotificationType.TICKET_STATUS_CHANGED,
+                "Ticket status updated",
+                "Ticket \"" + ticket.getTitle() + "\" moved from " + previousStatus + " to " + nextStatus + ".",
+                "/tickets",
+                Map.of(
+                        "ticketId", ticket.getId(),
+                        "previousStatus", previousStatus,
+                        "status", nextStatus)));
+    }
+
+    public void createTicketCommentNotification(
+            IncidentTicket ticket,
+            String recipientUserId,
+            String commenterName) {
+        if (!isNotificationEnabled(recipientUserId, NotificationType.TICKET_COMMENT_ADDED)) {
+            return;
+        }
+        createNotification(new NotificationCreateRequest(
+                recipientUserId,
+                NotificationType.TICKET_COMMENT_ADDED,
+                "New comment on your ticket",
+                commenterName + " added a comment to ticket \"" + ticket.getTitle() + "\".",
+                "/tickets",
+                Map.of("ticketId", ticket.getId())));
     }
 
     public List<NotificationResponse> getNotificationsForUser(String userId) {
@@ -149,5 +138,19 @@ public class NotificationService {
                 notification.getTargetUrl(),
                 notification.getMetadata(),
                 notification.getCreatedAt());
+    }
+
+    private boolean isNotificationEnabled(String userId, NotificationType type) {
+        UserAccount user = userAccountRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return false;
+        }
+
+        return switch (type) {
+            case BOOKING_APPROVED, BOOKING_REJECTED -> user.getNotificationPreferences().isBookingDecisionsEnabled();
+            case TICKET_STATUS_CHANGED -> user.getNotificationPreferences().isTicketStatusChangesEnabled();
+            case TICKET_COMMENT_ADDED -> user.getNotificationPreferences().isTicketCommentsEnabled();
+            default -> true;
+        };
     }
 }

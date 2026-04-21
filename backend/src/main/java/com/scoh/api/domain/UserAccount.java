@@ -20,6 +20,7 @@ public class UserAccount {
     private String providerId;
     private boolean active = true;
     private Set<Role> roles = new HashSet<>(Set.of(Role.USER));
+    private NotificationPreferences notificationPreferences = new NotificationPreferences();
 
     @CreatedDate
     private Instant createdAt;
@@ -89,6 +90,17 @@ public class UserAccount {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+    }
+
+    public NotificationPreferences getNotificationPreferences() {
+        if (notificationPreferences == null) {
+            notificationPreferences = new NotificationPreferences();
+        }
+        return notificationPreferences;
+    }
+
+    public void setNotificationPreferences(NotificationPreferences notificationPreferences) {
+        this.notificationPreferences = notificationPreferences;
     }
 
     public Instant getCreatedAt() {

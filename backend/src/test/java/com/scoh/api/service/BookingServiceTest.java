@@ -3,7 +3,6 @@ package com.scoh.api.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,7 +11,6 @@ import com.scoh.api.domain.Booking;
 import com.scoh.api.domain.BookingStatus;
 import com.scoh.api.domain.CampusResource;
 import com.scoh.api.domain.AvailabilityWindow;
-import com.scoh.api.domain.NotificationType;
 import com.scoh.api.dto.BookingCreateRequest;
 import com.scoh.api.dto.BookingResponse;
 import com.scoh.api.dto.BookingStatusUpdateRequest;
@@ -26,7 +24,6 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -61,15 +58,12 @@ class BookingServiceTest {
         });
 
         BookingResponse response = bookingService.createBooking("user-1", request);
-        ArgumentCaptor<NotificationCreateRequest> notificationCaptor =
-                ArgumentCaptor.forClass(NotificationCreateRequest.class);
 
         assertThat(response.getId()).isEqualTo("booking-1");
         assertThat(response.getStatus()).isEqualTo(BookingStatus.PENDING);
         assertThat(response.getResourceId()).isEqualTo("resource-1");
         assertThat(response.getUserId()).isEqualTo("user-1");
-        verify(notificationService, atLeastOnce()).createNotification(notificationCaptor.capture());
-        assertThat(notificationCaptor.getAllValues().get(0).type()).isEqualTo(NotificationType.BOOKING_CREATED);
+        verify(notificationService, never()).createNotification(any(NotificationCreateRequest.class));
     }
 
     @Test
@@ -137,33 +131,24 @@ class BookingServiceTest {
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         BookingResponse response = bookingService.updateBookingStatus("booking-1", request);
-        ArgumentCaptor<NotificationCreateRequest> notificationCaptor =
-                ArgumentCaptor.forClass(NotificationCreateRequest.class);
 
-        verify(notificationService).createNotification(notificationCaptor.capture());
-        NotificationCreateRequest notification = notificationCaptor.getValue();
+        verify(notificationService).createBookingDecisionNotification(booking, true);
 
         assertThat(response.getStatus()).isEqualTo(BookingStatus.APPROVED);
         assertThat(response.getAdminNotes()).isEqualTo("Approved for the lecture.");
-        assertThat(notification.recipientUserId()).isEqualTo("user-1");
-        assertThat(notification.title()).isEqualTo("Booking approved");
     }
 
     @Test
-    void shouldCancelOwnApprovedBookingAndNotifyUser() {
+    void shouldCancelOwnApprovedBookingWithoutNotification() {
         Booking booking = existingBooking("booking-1", "resource-1", "user-1", BookingStatus.APPROVED);
 
         when(bookingRepository.findById("booking-1")).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         BookingResponse response = bookingService.cancelBooking("booking-1", "user-1");
-        ArgumentCaptor<NotificationCreateRequest> notificationCaptor =
-                ArgumentCaptor.forClass(NotificationCreateRequest.class);
-
-        verify(notificationService).createNotification(notificationCaptor.capture());
 
         assertThat(response.getStatus()).isEqualTo(BookingStatus.CANCELLED);
-        assertThat(notificationCaptor.getValue().title()).isEqualTo("Booking cancelled");
+        verify(notificationService, never()).createNotification(any(NotificationCreateRequest.class));
     }
 
     @Test

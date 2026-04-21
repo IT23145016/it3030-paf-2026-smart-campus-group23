@@ -8,5 +8,6 @@ public record AuthUserResponse(
         String email,
         String fullName,
         String avatarUrl,
-        Set<Role> roles) {
+        Set<Role> roles,
+        NotificationPreferencesResponse notificationPreferences) {
 }

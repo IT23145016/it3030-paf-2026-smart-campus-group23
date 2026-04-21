@@ -931,6 +931,38 @@ p {
   margin-top: 1rem;
 }
 
+.notification-preferences-card {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(243, 229, 208, 0.42);
+  border: 1px solid rgba(16, 33, 29, 0.08);
+}
+
+.notification-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 16px;
+  background: rgba(255, 251, 244, 0.82);
+  border: 1px solid rgba(16, 33, 29, 0.06);
+}
+
+.notification-toggle input {
+  width: auto;
+  margin: 0;
+}
+
+.notification-preferences-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .notification-card {
   padding: 1rem;
   border-radius: 18px;

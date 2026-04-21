@@ -7,15 +7,30 @@ const POLL_INTERVAL_MS = 15000;
 const REFRESH_EVENT_NAME = "scoh:refresh-notifications";
 
 export default function NotificationPanel() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const location = useLocation();
   const [notifications, setNotifications] = useState([]);
   const [count, setCount] = useState(0);
   const [error, setError] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
+  const [preferencesSaving, setPreferencesSaving] = useState(false);
+  const [preferencesMessage, setPreferencesMessage] = useState("");
+  const [preferences, setPreferences] = useState({
+    bookingDecisionsEnabled: true,
+    ticketStatusChangesEnabled: true,
+    ticketCommentsEnabled: true
+  });
   const panelRef = useRef(null);
   const unreadIdsRef = useRef(new Set());
   const hasLoadedRef = useRef(false);
+
+  useEffect(() => {
+    if (!user?.notificationPreferences) {
+      return;
+    }
+
+    setPreferences(user.notificationPreferences);
+  }, [user]);
 
   function syncUnreadState(items) {
     const unreadIds = new Set(items.filter((item) => !item.read).map((item) => item.id));
@@ -157,6 +172,32 @@ export default function NotificationPanel() {
     }
   }
 
+  function handlePreferenceChange(event) {
+    const { name, checked } = event.target;
+    setPreferences((current) => ({ ...current, [name]: checked }));
+    setPreferencesMessage("");
+    setError("");
+  }
+
+  async function savePreferences(event) {
+    event.preventDefault();
+    try {
+      setPreferencesSaving(true);
+      const updatedPreferences = await api.updateNotificationPreferences(preferences);
+      setUser((current) => (current ? { ...current, notificationPreferences: updatedPreferences } : current));
+      setPreferences(updatedPreferences);
+      setPreferencesMessage("Notification preferences updated.");
+      setError("");
+    } catch (err) {
+      if (user?.notificationPreferences) {
+        setPreferences(user.notificationPreferences);
+      }
+      setError(err.message);
+    } finally {
+      setPreferencesSaving(false);
+    }
+  }
+
   return (
     <section className="panel" id="notifications" ref={panelRef}>
       <div className="panel-header">
@@ -176,6 +217,46 @@ export default function NotificationPanel() {
 
       {alertMessage ? <p className="notification-alert">{alertMessage}</p> : null}
       {error ? <p className="error">{error}</p> : null}
+
+      <form className="notification-preferences-card" onSubmit={savePreferences}>
+        <div>
+          <p className="eyebrow">Preferences</p>
+          <h3>Choose which alerts reach your inbox.</h3>
+        </div>
+        <label className="notification-toggle">
+          <input
+            type="checkbox"
+            name="bookingDecisionsEnabled"
+            checked={preferences.bookingDecisionsEnabled}
+            onChange={handlePreferenceChange}
+          />
+          <span>Booking approval and rejection</span>
+        </label>
+        <label className="notification-toggle">
+          <input
+            type="checkbox"
+            name="ticketStatusChangesEnabled"
+            checked={preferences.ticketStatusChangesEnabled}
+            onChange={handlePreferenceChange}
+          />
+          <span>Ticket status changes</span>
+        </label>
+        <label className="notification-toggle">
+          <input
+            type="checkbox"
+            name="ticketCommentsEnabled"
+            checked={preferences.ticketCommentsEnabled}
+            onChange={handlePreferenceChange}
+          />
+          <span>New comments on my tickets</span>
+        </label>
+        <div className="notification-preferences-actions">
+          <button type="submit" disabled={preferencesSaving}>
+            {preferencesSaving ? "Saving..." : "Save preferences"}
+          </button>
+          {preferencesMessage ? <p className="muted">{preferencesMessage}</p> : null}
+        </div>
+      </form>
 
       <div className="notification-list">
         {notifications.map((notification) => (

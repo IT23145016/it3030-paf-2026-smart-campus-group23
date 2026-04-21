@@ -3,6 +3,8 @@ package com.scoh.api.service;
 import com.scoh.api.domain.Role;
 import com.scoh.api.domain.UserAccount;
 import com.scoh.api.dto.AdminUserCreateRequest;
+import com.scoh.api.dto.NotificationPreferencesResponse;
+import com.scoh.api.dto.NotificationPreferencesUpdateRequest;
 import com.scoh.api.dto.UserStatusUpdateRequest;
 import com.scoh.api.dto.UserSummaryResponse;
 import com.scoh.api.exception.ForbiddenOperationException;
@@ -17,11 +19,9 @@ import org.springframework.stereotype.Service;
 public class UserAccountService {
 
     private final UserAccountRepository userAccountRepository;
-    private final NotificationService notificationService;
 
-    public UserAccountService(UserAccountRepository userAccountRepository, NotificationService notificationService) {
+    public UserAccountService(UserAccountRepository userAccountRepository) {
         this.userAccountRepository = userAccountRepository;
-        this.notificationService = notificationService;
     }
 
     public UserAccount upsertOAuthUser(
@@ -79,16 +79,6 @@ public class UserAccountService {
                 : request.roles());
 
         UserAccount saved = userAccountRepository.save(user);
-        notificationService.createAccountCreatedNotification(saved);
-        notificationService.createAdminAuditNotification(
-                actingUserId,
-                "User created",
-                "You created an account for " + saved.getEmail() + ".",
-                java.util.Map.of(
-                        "targetUserId", saved.getId(),
-                        "email", saved.getEmail(),
-                        "roles", saved.getRoles(),
-                        "active", saved.isActive()));
         return toSummary(saved);
     }
 
@@ -100,15 +90,6 @@ public class UserAccountService {
 
         target.setRoles(roles);
         UserAccount saved = userAccountRepository.save(target);
-        notificationService.createRoleUpdateNotification(saved);
-        notificationService.createAdminAuditNotification(
-                actingUserId,
-                "Roles updated",
-                "You updated roles for " + saved.getEmail() + ".",
-                java.util.Map.of(
-                        "targetUserId", saved.getId(),
-                        "email", saved.getEmail(),
-                        "roles", saved.getRoles()));
         return toSummary(saved);
     }
 
@@ -120,16 +101,22 @@ public class UserAccountService {
 
         target.setActive(Boolean.TRUE.equals(request.active()));
         UserAccount saved = userAccountRepository.save(target);
-        notificationService.createAccountStatusNotification(saved);
-        notificationService.createAdminAuditNotification(
-                actingUserId,
-                saved.isActive() ? "User activated" : "User deactivated",
-                "You " + (saved.isActive() ? "activated " : "deactivated ") + saved.getEmail() + ".",
-                java.util.Map.of(
-                        "targetUserId", saved.getId(),
-                        "email", saved.getEmail(),
-                        "active", saved.isActive()));
         return toSummary(saved);
+    }
+
+    public NotificationPreferencesResponse getNotificationPreferences(String userId) {
+        return toNotificationPreferences(findById(userId));
+    }
+
+    public NotificationPreferencesResponse updateNotificationPreferences(
+            String userId,
+            NotificationPreferencesUpdateRequest request) {
+        UserAccount user = findById(userId);
+        user.getNotificationPreferences().setBookingDecisionsEnabled(Boolean.TRUE.equals(request.bookingDecisionsEnabled()));
+        user.getNotificationPreferences().setTicketStatusChangesEnabled(Boolean.TRUE.equals(request.ticketStatusChangesEnabled()));
+        user.getNotificationPreferences().setTicketCommentsEnabled(Boolean.TRUE.equals(request.ticketCommentsEnabled()));
+        UserAccount saved = userAccountRepository.save(user);
+        return toNotificationPreferences(saved);
     }
 
     public void deleteUser(String targetUserId, String actingUserId) {
@@ -137,13 +124,6 @@ public class UserAccountService {
         if (target.getId().equals(actingUserId)) {
             throw new ForbiddenOperationException("Admins cannot delete their own account.");
         }
-        notificationService.createAdminAuditNotification(
-                actingUserId,
-                "User deleted",
-                "You deleted the account for " + target.getEmail() + ".",
-                java.util.Map.of(
-                        "targetUserId", target.getId(),
-                        "email", target.getEmail()));
         userAccountRepository.delete(target);
     }
 
@@ -167,5 +147,12 @@ public class UserAccountService {
                 user.getRoles(),
                 user.getCreatedAt(),
                 user.getUpdatedAt());
+    }
+
+    public NotificationPreferencesResponse toNotificationPreferences(UserAccount user) {
+        return new NotificationPreferencesResponse(
+                user.getNotificationPreferences().isBookingDecisionsEnabled(),
+                user.getNotificationPreferences().isTicketStatusChangesEnabled(),
+                user.getNotificationPreferences().isTicketCommentsEnabled());
     }
 }

@@ -43,6 +43,8 @@ async function upload(path, formData) {
 
 export const api = {
   getCurrentUser: () => request("/api/auth/me"),
+  updateNotificationPreferences: (payload) =>
+    request("/api/auth/notification-preferences", { method: "PATCH", body: JSON.stringify(payload) }),
   getResources: (filters = {}) => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
