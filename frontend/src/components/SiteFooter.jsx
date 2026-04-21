@@ -8,7 +8,7 @@ export default function SiteFooter({ compact = false }) {
   return (
     <footer className={`site-footer ${compact ? "compact" : ""}`}>
       <div className="footer-columns">
-        <section>
+        <section id="footer-about">
           <p className="footer-heading">Platform</p>
           <div className="footer-links">
             <Link to="/">Home</Link>
