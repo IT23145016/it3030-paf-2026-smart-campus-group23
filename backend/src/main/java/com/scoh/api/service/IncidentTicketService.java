@@ -80,6 +80,7 @@ public class IncidentTicketService {
         ticket.setCreatedByName(currentUser.getFullName());
 
         IncidentTicket saved = incidentTicketRepository.save(ticket);
+        notificationService.notifyAdminsNewTicket(saved, currentUser.getFullName() != null ? currentUser.getFullName() : currentUser.getEmail());
         return toResponse(saved);
     }
 

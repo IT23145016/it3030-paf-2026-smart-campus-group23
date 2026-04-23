@@ -182,24 +182,17 @@ export default function NotificationPanel() {
     }
   }
 
-  async function openNotificationTarget(notification) {
-    try {
-      if (!notification.read) {
-        await api.markNotificationRead(notification.id);
-      }
-
+  function openNotificationTarget(notification) {
+    if (!notification.read) {
+      api.markNotificationRead(notification.id).catch(() => {});
       setNotifications((current) => {
         const next = current.map((item) => (item.id === notification.id ? { ...item, read: true } : item));
         syncUnreadState(next);
         return next;
       });
-
-      if (notification.targetUrl) {
-        navigate(notification.targetUrl);
-      }
-      setError("");
-    } catch (err) {
-      setError(err.message);
+    }
+    if (notification.targetUrl) {
+      window.location.href = notification.targetUrl;
     }
   }
 
@@ -396,11 +389,11 @@ function matchesFilter(notification, filter) {
   }
 
   if (filter === "booking") {
-    return notification.type === "BOOKING_APPROVED" || notification.type === "BOOKING_REJECTED";
+    return notification.type === "BOOKING_APPROVED" || notification.type === "BOOKING_REJECTED" || notification.type === "BOOKING_CREATED";
   }
 
   if (filter === "tickets") {
-    return notification.type === "TICKET_STATUS_CHANGED";
+    return notification.type === "TICKET_STATUS_CHANGED" || notification.type === "TICKET_CREATED";
   }
 
   if (filter === "comments") {

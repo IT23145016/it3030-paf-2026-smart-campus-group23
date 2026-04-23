@@ -3,13 +3,7 @@ import Shell from "../components/Shell";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
 
-const ROLE_OPTIONS = ["USER", "ADMIN", "TECHNICIAN"];
-const EMPTY_FORM = {
-  fullName: "",
-  email: "",
-  avatarUrl: "",
-  roles: ["USER"]
-};
+const ROLE_OPTIONS = ["USER", "ADMIN", "TECHNICIAN", "STUDENT"];
 const NOTIFICATION_REFRESH_EVENT = "scoh:refresh-notifications";
 
 export default function RoleManagementPage() {
@@ -21,7 +15,6 @@ export default function RoleManagementPage() {
     role: "all",
     status: "all"
   });
-  const [form, setForm] = useState(EMPTY_FORM);
   const [updatingUserId, setUpdatingUserId] = useState("");
   const [deletingUserId, setDeletingUserId] = useState("");
 
@@ -90,38 +83,9 @@ export default function RoleManagementPage() {
       setUpdatingUserId("");
     }
   }
-
-  function handleInputChange(event) {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
-  }
-
   function handleFilterChange(event) {
     const { name, value } = event.target;
     setFilters((current) => ({ ...current, [name]: value }));
-  }
-
-  function handleRoleSelection(role) {
-    setForm((current) => ({
-      ...current,
-      roles: current.roles.includes(role)
-        ? current.roles.filter((item) => item !== role)
-        : [...current.roles, role]
-    }));
-  }
-
-  async function createUser(event) {
-    event.preventDefault();
-
-    try {
-      const created = await api.createUser(form);
-      setUsers((current) => [created, ...current]);
-      setForm(EMPTY_FORM);
-      setError("");
-      window.dispatchEvent(new Event(NOTIFICATION_REFRESH_EVENT));
-    } catch (err) {
-      setError(err.message);
-    }
   }
 
   async function deleteUser(userId) {
@@ -179,43 +143,6 @@ export default function RoleManagementPage() {
       </section>
 
       {error ? <p className="error">{error}</p> : null}
-
-      <section className="table-card">
-        <div className="table-header">
-          <h3>Create managed user</h3>
-        </div>
-        <form className="filter-grid" onSubmit={createUser}>
-          <label>
-            Full name
-            <input name="fullName" value={form.fullName} onChange={handleInputChange} required />
-          </label>
-          <label>
-            Email
-            <input name="email" type="email" value={form.email} onChange={handleInputChange} required />
-          </label>
-          <label>
-            Avatar URL
-            <input name="avatarUrl" value={form.avatarUrl} onChange={handleInputChange} />
-          </label>
-          <div>
-            <span className="eyebrow">Roles</span>
-            <div className="role-group">
-              {ROLE_OPTIONS.map((role) => (
-                <label key={role} className="role-pill">
-                  <input type="checkbox" checked={form.roles.includes(role)} onChange={() => handleRoleSelection(role)} />
-                  <span>{role}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-          <div className="filter-actions">
-            <button type="submit">Create user</button>
-            <button type="button" className="secondary-button" onClick={() => setForm(EMPTY_FORM)}>
-              Reset
-            </button>
-          </div>
-        </form>
-      </section>
 
       <section className="table-card">
         <div className="table-header">

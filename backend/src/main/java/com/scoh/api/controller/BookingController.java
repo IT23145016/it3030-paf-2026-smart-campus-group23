@@ -25,7 +25,7 @@ public class BookingController {
   @PostMapping
   public ResponseEntity<BookingResponse> createBooking(@Valid @RequestBody BookingCreateRequest request) {
     UserAccount user = SecurityUtils.currentUser();
-    BookingResponse response = bookingService.createBooking(user.getId(), request);
+    BookingResponse response = bookingService.createBooking(user, request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 

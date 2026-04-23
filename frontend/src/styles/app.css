@@ -498,7 +498,7 @@ p {
 .signin-provider-list {
   display: grid;
   gap: 0.7rem;
-  margin-top: 0.3rem;
+  margin-top: -0.3rem;
   width: min(100%, 360px);
 }
 

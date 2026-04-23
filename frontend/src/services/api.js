@@ -43,6 +43,8 @@ async function upload(path, formData) {
 
 export const api = {
   getCurrentUser: () => request("/api/auth/me"),
+  register: (payload) => request("/api/auth/register", { method: "POST", body: JSON.stringify(payload) }),
+  login: (payload) => request("/api/auth/login", { method: "POST", body: JSON.stringify(payload) }),
   updateNotificationPreferences: (payload) =>
     request("/api/auth/notification-preferences", { method: "PATCH", body: JSON.stringify(payload) }),
   getResources: (filters = {}) => {

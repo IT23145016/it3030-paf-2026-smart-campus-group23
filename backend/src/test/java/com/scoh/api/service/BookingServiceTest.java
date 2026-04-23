@@ -11,6 +11,7 @@ import com.scoh.api.domain.Booking;
 import com.scoh.api.domain.BookingStatus;
 import com.scoh.api.domain.CampusResource;
 import com.scoh.api.domain.AvailabilityWindow;
+import com.scoh.api.domain.UserAccount;
 import com.scoh.api.dto.BookingCreateRequest;
 import com.scoh.api.dto.BookingResponse;
 import com.scoh.api.dto.BookingStatusUpdateRequest;
@@ -57,7 +58,7 @@ class BookingServiceTest {
             return booking;
         });
 
-        BookingResponse response = bookingService.createBooking("user-1", request);
+        BookingResponse response = bookingService.createBooking(testUser("user-1"), request);
 
         assertThat(response.getId()).isEqualTo("booking-1");
         assertThat(response.getStatus()).isEqualTo(BookingStatus.PENDING);
@@ -82,7 +83,7 @@ class BookingServiceTest {
         when(bookingRepository.findByResourceIdAndStatusInAndStartTimeBeforeAndEndTimeAfter(
                 any(), any(), any(), any())).thenReturn(List.of(existing));
 
-        assertThatThrownBy(() -> bookingService.createBooking("user-1", request))
+        assertThatThrownBy(() -> bookingService.createBooking(testUser("user-1"), request))
                 .isInstanceOf(BookingConflictException.class)
                 .hasMessageContaining("already reserved");
 
@@ -97,7 +98,7 @@ class BookingServiceTest {
 
         when(campusResourceRepository.findById("resource-1")).thenReturn(Optional.of(resource));
 
-        assertThatThrownBy(() -> bookingService.createBooking("user-1", request))
+        assertThatThrownBy(() -> bookingService.createBooking(testUser("user-1"), request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("exceeds resource capacity");
 
@@ -113,7 +114,7 @@ class BookingServiceTest {
 
         when(campusResourceRepository.findById("resource-1")).thenReturn(Optional.of(resource));
 
-        assertThatThrownBy(() -> bookingService.createBooking("user-1", request))
+        assertThatThrownBy(() -> bookingService.createBooking(testUser("user-1"), request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Booking must be within the resource availability");
 
@@ -162,6 +163,14 @@ class BookingServiceTest {
                 .hasMessageContaining("own bookings");
 
         verify(notificationService, never()).createNotification(any(NotificationCreateRequest.class));
+    }
+
+    private UserAccount testUser(String userId) {
+        UserAccount user = new UserAccount();
+        user.setId(userId);
+        user.setFullName("Test User");
+        user.setEmail("test@example.com");
+        return user;
     }
 
     private BookingCreateRequest validCreateRequest() {
