@@ -313,7 +313,7 @@ export default function NotificationPanel() {
             <h3>{notification.title}</h3>
             <p className="notification-time">{formatNotificationTimestamp(notification.createdAt)}</p>
             <p>{notification.message}</p>
-            <div className="booking-actions">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", marginTop: "1rem", alignItems: "center" }}>
               {notification.targetUrl ? (
                 <button type="button" onClick={() => openNotificationTarget(notification)}>
                   View related item
