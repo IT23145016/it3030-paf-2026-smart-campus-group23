@@ -59,7 +59,7 @@ export default function SignUpPage() {
             <p>Join Smart Uni Hub and manage your campus services.</p>
           </div>
 
-          <form className="signup-inline-form" onSubmit={handleSubmit}>
+          <form className="signup-inline-form" onSubmit={handleSubmit} noValidate>
             <label className="signup-inline-field">
               <span>Full Name</span>
               <input

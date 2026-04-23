@@ -125,77 +125,62 @@ export default function DashboardPage() {
 
           {/* Bookings + Tickets */}
           <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <article className="info-card" style={{ padding: "1.3rem" }}>
-              <p className="eyebrow">Bookings</p>
-              <h3 style={{ marginBottom: "1rem" }}>Booking request status</h3>
-              <div className="dashboard-role-list">
-                <div className="dashboard-role-row"><span>Pending approval</span><strong style={{ color: pendingBookings > 0 ? "#1f567f" : "inherit" }}>{pendingBookings}</strong></div>
-                <div className="dashboard-role-row"><span>Approved</span><strong>{approvedBookings}</strong></div>
-                <div className="dashboard-role-row"><span>Total bookings</span><strong>{totalBookings}</strong></div>
+            <article className="info-card" style={{ padding: "1rem" }}>
+              <p className="eyebrow" style={{ fontSize: "0.7rem" }}>Bookings</p>
+              <h3 style={{ marginBottom: "0.75rem", fontSize: "1rem" }}>Booking request status</h3>
+              <div className="dashboard-role-list" style={{ gap: "0.5rem" }}>
+                <div className="dashboard-role-row" style={{ padding: "0.6rem 0.8rem" }}><span style={{ fontSize: "0.88rem" }}>Pending approval</span><strong style={{ color: pendingBookings > 0 ? "#1f567f" : "inherit", fontSize: "0.95rem" }}>{pendingBookings}</strong></div>
+                <div className="dashboard-role-row" style={{ padding: "0.6rem 0.8rem" }}><span style={{ fontSize: "0.88rem" }}>Approved</span><strong style={{ fontSize: "0.95rem" }}>{approvedBookings}</strong></div>
+                <div className="dashboard-role-row" style={{ padding: "0.6rem 0.8rem" }}><span style={{ fontSize: "0.88rem" }}>Total bookings</span><strong style={{ fontSize: "0.95rem" }}>{totalBookings}</strong></div>
               </div>
-              <Link to="/admin/bookings" style={{ display: "inline-block", marginTop: "1rem", color: "#214c71", fontWeight: 700, fontSize: "0.9rem" }}>View all bookings →</Link>
+              <Link to="/admin/bookings" style={{ display: "inline-block", marginTop: "0.75rem", color: "#214c71", fontWeight: 700, fontSize: "0.85rem" }}>View all bookings →</Link>
             </article>
-            <article className="info-card" style={{ padding: "1.3rem" }}>
-              <p className="eyebrow">Tickets</p>
-              <h3 style={{ marginBottom: "1rem" }}>Incident ticket status</h3>
-              <div className="dashboard-role-list">
-                <div className="dashboard-role-row"><span>Open</span><strong style={{ color: openTickets > 0 ? "#1f567f" : "inherit" }}>{openTickets}</strong></div>
-                <div className="dashboard-role-row"><span>In progress</span><strong>{inProgressTickets}</strong></div>
-                <div className="dashboard-role-row"><span>Resolved</span><strong>{resolvedTickets}</strong></div>
-                <div className="dashboard-role-row"><span>Total tickets</span><strong>{totalTickets}</strong></div>
+            <article className="info-card" style={{ padding: "1rem" }}>
+              <p className="eyebrow" style={{ fontSize: "0.7rem" }}>Tickets</p>
+              <h3 style={{ marginBottom: "0.75rem", fontSize: "1rem" }}>Incident ticket status</h3>
+              <div className="dashboard-role-list" style={{ gap: "0.5rem" }}>
+                <div className="dashboard-role-row" style={{ padding: "0.6rem 0.8rem" }}><span style={{ fontSize: "0.88rem" }}>Open</span><strong style={{ color: openTickets > 0 ? "#1f567f" : "inherit", fontSize: "0.95rem" }}>{openTickets}</strong></div>
+                <div className="dashboard-role-row" style={{ padding: "0.6rem 0.8rem" }}><span style={{ fontSize: "0.88rem" }}>In progress</span><strong style={{ fontSize: "0.95rem" }}>{inProgressTickets}</strong></div>
+                <div className="dashboard-role-row" style={{ padding: "0.6rem 0.8rem" }}><span style={{ fontSize: "0.88rem" }}>Resolved</span><strong style={{ fontSize: "0.95rem" }}>{resolvedTickets}</strong></div>
+                <div className="dashboard-role-row" style={{ padding: "0.6rem 0.8rem" }}><span style={{ fontSize: "0.88rem" }}>Total tickets</span><strong style={{ fontSize: "0.95rem" }}>{totalTickets}</strong></div>
               </div>
-              <Link to="/tickets/manage" style={{ display: "inline-block", marginTop: "1rem", color: "#214c71", fontWeight: 700, fontSize: "0.9rem" }}>View all tickets →</Link>
+              <Link to="/tickets/manage" style={{ display: "inline-block", marginTop: "0.75rem", color: "#214c71", fontWeight: 700, fontSize: "0.85rem" }}>View all tickets →</Link>
             </article>
           </section>
 
           {/* Users + Quick Actions */}
           {/* Users + Quick Actions */}
           <section className="insight-grid">
-            <article className="info-card" style={{ padding: "1.3rem" }}>
-              <p className="eyebrow">User Accounts</p>
-              <h3>Access distribution across the platform</h3>
-              <div className="dashboard-role-list">
-                <div className="dashboard-role-row">
-                  <span>Administrators</span>
-                  <strong>{adminCount}</strong>
-                </div>
-                <div className="dashboard-role-row">
-                  <span>Technicians</span>
-                  <strong>{technicianCount}</strong>
-                </div>
-                <div className="dashboard-role-row">
-                  <span>Active accounts</span>
-                  <strong>{activeUsers}</strong>
-                </div>
-                <div className="dashboard-role-row">
-                  <span>Total accounts</span>
-                  <strong>{users.length}</strong>
-                </div>
+            <article className="info-card" style={{ padding: "1rem" }}>
+              <p className="eyebrow" style={{ fontSize: "0.7rem" }}>User Accounts</p>
+              <h3 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Access distribution</h3>
+              <div className="dashboard-role-list" style={{ gap: "0.5rem" }}>
+                <div className="dashboard-role-row" style={{ padding: "0.6rem 0.8rem" }}><span style={{ fontSize: "0.88rem" }}>Administrators</span><strong style={{ fontSize: "0.95rem" }}>{adminCount}</strong></div>
+                <div className="dashboard-role-row" style={{ padding: "0.6rem 0.8rem" }}><span style={{ fontSize: "0.88rem" }}>Technicians</span><strong style={{ fontSize: "0.95rem" }}>{technicianCount}</strong></div>
+                <div className="dashboard-role-row" style={{ padding: "0.6rem 0.8rem" }}><span style={{ fontSize: "0.88rem" }}>Active accounts</span><strong style={{ fontSize: "0.95rem" }}>{activeUsers}</strong></div>
+                <div className="dashboard-role-row" style={{ padding: "0.6rem 0.8rem" }}><span style={{ fontSize: "0.88rem" }}>Total accounts</span><strong style={{ fontSize: "0.95rem" }}>{users.length}</strong></div>
               </div>
-              <Link to="/admin/roles" style={{ display: "inline-block", marginTop: "1rem", color: "#214c71", fontWeight: 700, fontSize: "0.9rem" }}>
-                Manage roles →
-              </Link>
+              <Link to="/admin/roles" style={{ display: "inline-block", marginTop: "0.75rem", color: "#214c71", fontWeight: 700, fontSize: "0.85rem" }}>Manage roles →</Link>
             </article>
-
-            <article className="info-card" style={{ padding: "1.3rem" }}>
-              <p className="eyebrow">Quick Actions</p>
-              <h3>Common admin tasks</h3>
-              <div style={{ display: "grid", gap: "0.75rem", marginTop: "1rem" }}>
-                <Link to="/admin/bookings" className="dashboard-role-row" style={{ textDecoration: "none", color: "inherit" }}>
-                  <span>Review pending bookings</span>
-                  <strong style={{ color: "#214c71" }}>{pendingBookings} pending →</strong>
+            <article className="info-card" style={{ padding: "1rem" }}>
+              <p className="eyebrow" style={{ fontSize: "0.7rem" }}>Quick Actions</p>
+              <h3 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Common admin tasks</h3>
+              <div style={{ display: "grid", gap: "0.5rem" }}>
+                <Link to="/admin/bookings" className="dashboard-role-row" style={{ textDecoration: "none", color: "inherit", padding: "0.6rem 0.8rem" }}>
+                  <span style={{ fontSize: "0.88rem" }}>Review pending bookings</span>
+                  <strong style={{ color: "#214c71", fontSize: "0.88rem" }}>{pendingBookings} pending →</strong>
                 </Link>
-                <Link to="/tickets/manage" className="dashboard-role-row" style={{ textDecoration: "none", color: "inherit" }}>
-                  <span>Handle open tickets</span>
-                  <strong style={{ color: "#214c71" }}>{openTickets} open →</strong>
+                <Link to="/tickets/manage" className="dashboard-role-row" style={{ textDecoration: "none", color: "inherit", padding: "0.6rem 0.8rem" }}>
+                  <span style={{ fontSize: "0.88rem" }}>Handle open tickets</span>
+                  <strong style={{ color: "#214c71", fontSize: "0.88rem" }}>{openTickets} open →</strong>
                 </Link>
-                <Link to="/admin/resources" className="dashboard-role-row" style={{ textDecoration: "none", color: "inherit" }}>
-                  <span>Update resource status</span>
-                  <strong style={{ color: "#214c71" }}>Manage →</strong>
+                <Link to="/admin/resources" className="dashboard-role-row" style={{ textDecoration: "none", color: "inherit", padding: "0.6rem 0.8rem" }}>
+                  <span style={{ fontSize: "0.88rem" }}>Update resource status</span>
+                  <strong style={{ color: "#214c71", fontSize: "0.88rem" }}>Manage →</strong>
                 </Link>
-                <Link to="/notifications" className="dashboard-role-row" style={{ textDecoration: "none", color: "inherit" }}>
-                  <span>Check notifications</span>
-                  <strong style={{ color: "#214c71" }}>View →</strong>
+                <Link to="/notifications" className="dashboard-role-row" style={{ textDecoration: "none", color: "inherit", padding: "0.6rem 0.8rem" }}>
+                  <span style={{ fontSize: "0.88rem" }}>Check notifications</span>
+                  <strong style={{ color: "#214c71", fontSize: "0.88rem" }}>View →</strong>
                 </Link>
               </div>
             </article>

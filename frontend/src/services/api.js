@@ -45,6 +45,8 @@ export const api = {
   getCurrentUser: () => request("/api/auth/me"),
   register: (payload) => request("/api/auth/register", { method: "POST", body: JSON.stringify(payload) }),
   login: (payload) => request("/api/auth/login", { method: "POST", body: JSON.stringify(payload) }),
+  forgotPassword: (email) => request("/api/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) }),
+  resetPassword: (payload) => request("/api/auth/reset-password", { method: "POST", body: JSON.stringify(payload) }),
   updateNotificationPreferences: (payload) =>
     request("/api/auth/notification-preferences", { method: "PATCH", body: JSON.stringify(payload) }),
   getResources: (filters = {}) => {

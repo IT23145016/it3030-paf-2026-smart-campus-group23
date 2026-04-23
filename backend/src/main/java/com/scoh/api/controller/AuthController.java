@@ -2,13 +2,16 @@ package com.scoh.api.controller;
 
 import com.scoh.api.domain.UserAccount;
 import com.scoh.api.dto.AuthUserResponse;
+import com.scoh.api.dto.ForgotPasswordRequest;
 import com.scoh.api.dto.LocalLoginRequest;
 import com.scoh.api.dto.LocalRegisterRequest;
+import com.scoh.api.dto.ResetPasswordRequest;
 import com.scoh.api.dto.NotificationPreferencesResponse;
 import com.scoh.api.dto.NotificationPreferencesUpdateRequest;
 import com.scoh.api.exception.ForbiddenOperationException;
 import com.scoh.api.security.AppUserPrincipal;
 import com.scoh.api.security.SecurityUtils;
+import com.scoh.api.service.PasswordResetService;
 import com.scoh.api.service.UserAccountService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -31,9 +34,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final UserAccountService userAccountService;
+    private final PasswordResetService passwordResetService;
 
-    public AuthController(UserAccountService userAccountService) {
+    public AuthController(UserAccountService userAccountService, PasswordResetService passwordResetService) {
         this.userAccountService = userAccountService;
+        this.passwordResetService = passwordResetService;
     }
 
     @PostMapping("/register")
@@ -67,6 +72,20 @@ public class AuthController {
                 user.getAvatarUrl(),
                 user.getRoles(),
                 userAccountService.toNotificationPreferences(user));
+    }
+
+    @PostMapping("/forgot-password")
+    @ResponseStatus(HttpStatus.OK)
+    public Map<String, String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordResetService.sendOtp(request.email());
+        return Map.of("message", "OTP sent to your email address.");
+    }
+
+    @PostMapping("/reset-password")
+    @ResponseStatus(HttpStatus.OK)
+    public Map<String, String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        passwordResetService.resetPassword(request.email(), request.otp(), request.newPassword());
+        return Map.of("message", "Password reset successfully. Please sign in.");
     }
 
     @GetMapping("/me")
