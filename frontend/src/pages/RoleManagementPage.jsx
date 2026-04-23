@@ -17,6 +17,8 @@ export default function RoleManagementPage() {
   });
   const [updatingUserId, setUpdatingUserId] = useState("");
   const [deletingUserId, setDeletingUserId] = useState("");
+  const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     loadUsers();
@@ -89,32 +91,29 @@ export default function RoleManagementPage() {
   }
 
   async function deleteUser(userId) {
-    const targetUser = users.find((item) => item.id === userId);
-
     if (currentUser?.id === userId) {
       setError("Admins cannot delete their own account.");
       return;
     }
+    const targetUser = users.find((item) => item.id === userId);
+    setConfirmDeleteUser(targetUser);
+  }
 
-    if (targetUser) {
-      const confirmed = window.confirm(
-        `Delete ${targetUser.fullName || targetUser.email}? This action cannot be undone.`
-      );
-      if (!confirmed) {
-        return;
-      }
-    }
-
+  async function confirmDelete() {
+    if (!confirmDeleteUser) return;
     try {
-      setDeletingUserId(userId);
-      await api.deleteUser(userId);
-      setUsers((current) => current.filter((user) => user.id !== userId));
+      setDeletingUserId(confirmDeleteUser.id);
+      await api.deleteUser(confirmDeleteUser.id);
+      setUsers((current) => current.filter((user) => user.id !== confirmDeleteUser.id));
       setError("");
+      setSuccessMessage(`${confirmDeleteUser.fullName || confirmDeleteUser.email} has been deleted successfully.`);
+      setTimeout(() => setSuccessMessage(""), 4000);
       window.dispatchEvent(new Event(NOTIFICATION_REFRESH_EVENT));
     } catch (err) {
       setError(err.message);
     } finally {
       setDeletingUserId("");
+      setConfirmDeleteUser(null);
     }
   }
 
@@ -143,6 +142,43 @@ export default function RoleManagementPage() {
       </section>
 
       {error ? <p className="error">{error}</p> : null}
+      {confirmDeleteUser ? (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(16,33,29,0.45)", zIndex: 50, display: "grid", placeItems: "center" }}>
+          <div style={{ background: "#fff", borderRadius: "24px", padding: "2rem", maxWidth: "400px", width: "90%", boxShadow: "0 24px 60px rgba(33,76,113,0.18)", display: "grid", gap: "1.2rem", textAlign: "center" }}>
+            <h3 style={{ margin: 0, color: "#173f61" }}>Delete Account</h3>
+            <p style={{ margin: 0, color: "#5d6f7d" }}>
+              Are you sure you want to delete <strong>{confirmDeleteUser.fullName || confirmDeleteUser.email}</strong>? This action cannot be undone.
+            </p>
+            <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
+              <button onClick={confirmDelete} disabled={!!deletingUserId}>
+                {deletingUserId ? "Deleting..." : "Yes, Delete"}
+              </button>
+              <button className="secondary-button" onClick={() => setConfirmDeleteUser(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {successMessage ? (
+        <div style={{
+          position: "fixed",
+          top: "1.5rem",
+          left: "50%",
+          transform: "translateX(-50%)",
+          background: "linear-gradient(135deg, #214c71, #5f93bc)",
+          color: "#f7fbff",
+          padding: "0.9rem 1.6rem",
+          borderRadius: "16px",
+          boxShadow: "0 14px 32px rgba(33, 76, 113, 0.22)",
+          fontWeight: "600",
+          zIndex: 999,
+          whiteSpace: "nowrap"
+        }}>
+          ✓ {successMessage}
+        </div>
+      ) : null}
 
       <section className="table-card">
         <div className="table-header">
@@ -239,9 +275,9 @@ export default function RoleManagementPage() {
                     type="button"
                     className="secondary-button"
                     onClick={() => deleteUser(user.id)}
-                    disabled={deletingUserId === user.id || currentUser?.id === user.id}
+                    disabled={currentUser?.id === user.id}
                   >
-                    {deletingUserId === user.id ? "Deleting..." : "Delete"}
+                    Delete
                   </button>
                 </td>
               </tr>
