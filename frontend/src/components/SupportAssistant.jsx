@@ -103,7 +103,6 @@ export default function SupportAssistant() {
           aria-label="Open system assistant"
         >
           <AssistantIcon />
-          <span>System Guide</span>
         </button>
 
         {open ? (

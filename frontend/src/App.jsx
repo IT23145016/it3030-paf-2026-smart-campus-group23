@@ -3,6 +3,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { AdminRoute, OperationsRoute, ProtectedRoute, PublicOnlyRoute } from "./components/RouteGuards";
 import LandingPage from "./pages/LandingPage";
 import SignInPage from "./pages/SignInPage";
+import SignUpPage from "./pages/SignUpPage";
 import DashboardPage from "./pages/DashboardPage";
 import RoleManagementPage from "./pages/RoleManagementPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
@@ -13,6 +14,9 @@ import AdminBookingsPage from "./pages/AdminBookingsPage";
 import TicketsPage from "./pages/TicketsPage";
 import TicketOperationsPage from "./pages/TicketOperationsPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import HelpPage from "./pages/HelpPage";
+import AboutUsPage from "./pages/AboutUsPage";
+import ContactUsPage from "./pages/ContactUsPage";
 
 export default function App() {
   return (
@@ -20,6 +24,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/help" element={<HelpPage />} />
+        <Route path="/about" element={<AboutUsPage />} />
+        <Route path="/contact" element={<ContactUsPage />} />
         <Route
           path="/bookings"
           element={
@@ -57,6 +64,14 @@ export default function App() {
           element={
             <PublicOnlyRoute>
               <SignInPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicOnlyRoute>
+              <SignUpPage />
             </PublicOnlyRoute>
           }
         />

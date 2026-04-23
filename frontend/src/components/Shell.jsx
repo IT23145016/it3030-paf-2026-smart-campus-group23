@@ -101,14 +101,14 @@ export default function Shell({ title, children }) {
             <MenuIcon />
           </button>
           <Link to="/">Home</Link>
-          <a href="#footer-contact">Contact Us</a>
-          <a href="#footer-help">Help</a>
+          <Link to="/contact">Contact Us</Link>
+          <Link to="/help">Help</Link>
         </div>
 
         <div className="page-menubar-actions">
-          <a className="page-menubar-link" href="#footer-about">
+          <Link className="page-menubar-link" to="/about">
             About Us
-          </a>
+          </Link>
           {user ? (
             <Link className="menu-icon-link notification-bell-link" to={notificationHref} aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`}>
               <BellIcon />
@@ -159,7 +159,6 @@ export default function Shell({ title, children }) {
           <div className="drawer-brand">
             <span className="drawer-mark">SC</span>
             <div>
-              <p className="profile-label">Quick menu</p>
               <strong>Quick Access</strong>
             </div>
           </div>

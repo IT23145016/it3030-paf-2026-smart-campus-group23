@@ -8,18 +8,28 @@ export default function SiteFooter({ compact = false }) {
   return (
     <footer className={`site-footer ${compact ? "compact" : ""}`}>
       <div className="footer-columns">
-        <section>
-          <p className="footer-heading">Platform</p>
+        <section id="footer-about">
+          <p className="footer-heading">Smart Uni Hub</p>
+          <div className="footer-links">
+            <span>A smart campus platform for facilities, requests, maintenance, and secure university operations.</span>
+          </div>
+        </section>
+
+        <section id="footer-help">
+          <p className="footer-heading">Platform & Useful Links</p>
           <div className="footer-links">
             <Link to="/">Home</Link>
-            <Link to="/resources">Facilities Catalogue</Link>
+            <Link to="/about">About Us</Link>
+            <Link to="/help">Help Centre</Link>
+            <Link to="/contact">Contact Us</Link>
             {isAdmin ? <Link to="/dashboard">Dashboard</Link> : null}
             {isAdmin ? <Link to="/admin/roles">Role Management</Link> : null}
+            {!user ? <Link to="/signin">Google Access</Link> : null}
           </div>
         </section>
 
         <section id="footer-contact">
-          <p className="footer-heading">Contact Us</p>
+          <p className="footer-heading">Contact</p>
           <div className="footer-links">
             <span>Campus Operations Office</span>
             <span>operations@smartcampus.edu</span>
@@ -27,32 +37,23 @@ export default function SiteFooter({ compact = false }) {
             <span>Mon - Fri, 8.30 AM - 5.00 PM</span>
           </div>
         </section>
-
-        <section id="footer-help">
-          <p className="footer-heading">Help & Support</p>
-          <div className="footer-links">
-            <span>How to request a facility</span>
-            <span>How to update resource records</span>
-            <span>Support for administrators</span>
-            <span>Access and account guidance</span>
-          </div>
-        </section>
       </div>
 
       <div className="footer-bottom">
-        <div className="footer-copyright">
-          <span>&copy; 2026 Smart Campus Operations Hub. All rights reserved. Designed for clear, auditable campus operations.</span>
-        </div>
-        <div className="social-links">
-          <a href="https://www.instagram.com/" target="_blank" rel="noreferrer" aria-label="Instagram">
-            <InstagramIcon />
-          </a>
-          <a href="https://www.facebook.com/" target="_blank" rel="noreferrer" aria-label="Facebook">
-            <FacebookIcon />
-          </a>
-          <a href="https://twitter.com/" target="_blank" rel="noreferrer" aria-label="Twitter">
-            <TwitterIcon />
-          </a>
+        <div className="footer-copyright">&copy; 2026 Smart Campus Operations Hub. All rights reserved.</div>
+        <div className="footer-social-group">
+          <div className="footer-social-copy">Get connected with us on social networks:</div>
+          <div className="social-links">
+            <a href="https://www.facebook.com/" target="_blank" rel="noreferrer" aria-label="Facebook">
+              <FacebookIcon />
+            </a>
+            <a href="https://twitter.com/" target="_blank" rel="noreferrer" aria-label="Twitter">
+              <TwitterIcon />
+            </a>
+            <a href="https://www.instagram.com/" target="_blank" rel="noreferrer" aria-label="Instagram">
+              <InstagramIcon />
+            </a>
+          </div>
         </div>
       </div>
     </footer>
