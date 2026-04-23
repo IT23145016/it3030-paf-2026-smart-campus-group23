@@ -18,6 +18,7 @@ public class UserAccount {
     private String avatarUrl;
     private String provider;
     private String providerId;
+    private String passwordHash;
     private boolean active = true;
     private Set<Role> roles = new HashSet<>(Set.of(Role.USER));
     private NotificationPreferences notificationPreferences = new NotificationPreferences();
@@ -74,6 +75,14 @@ public class UserAccount {
 
     public void setProviderId(String providerId) {
         this.providerId = providerId;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     public boolean isActive() {

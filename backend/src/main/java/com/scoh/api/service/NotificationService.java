@@ -41,6 +41,30 @@ public class NotificationService {
         return toResponse(notificationRepository.save(notification));
     }
 
+    public void notifyAdminsNewBooking(Booking booking, String requesterName) {
+        userAccountRepository.findAll().stream()
+                .filter(user -> user.isActive() && user.getRoles().contains(Role.ADMIN))
+                .forEach(admin -> createNotification(new NotificationCreateRequest(
+                        admin.getId(),
+                        NotificationType.BOOKING_CREATED,
+                        "New booking request",
+                        requesterName + " submitted a new booking request.",
+                        "/admin/bookings",
+                        Map.of("bookingId", booking.getId()))));
+    }
+
+    public void notifyAdminsNewTicket(IncidentTicket ticket, String submitterName) {
+        userAccountRepository.findAll().stream()
+                .filter(user -> user.isActive() && user.getRoles().contains(Role.ADMIN))
+                .forEach(admin -> createNotification(new NotificationCreateRequest(
+                        admin.getId(),
+                        NotificationType.TICKET_CREATED,
+                        "New incident ticket",
+                        submitterName + " submitted a new ticket: \"" + ticket.getTitle() + "\".",
+                        "/tickets/manage?ticketId=" + ticket.getId(),
+                        Map.of("ticketId", ticket.getId()))));
+    }
+
     public void createBookingDecisionNotification(Booking booking, boolean approved) {
         NotificationType type = approved ? NotificationType.BOOKING_APPROVED : NotificationType.BOOKING_REJECTED;
         if (!isNotificationEnabled(booking.getUserId(), type)) {

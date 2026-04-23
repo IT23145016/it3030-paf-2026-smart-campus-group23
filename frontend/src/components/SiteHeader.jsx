@@ -22,13 +22,15 @@ export default function SiteHeader() {
       </nav>
 
       <div className="site-header-actions">
-        <Link
-          className="site-header-icon"
-          to={user ? "/notifications" : "/signin"}
-          aria-label={user ? "Notifications" : "Sign in to view notifications"}
-        >
-          <NotificationIcon />
-        </Link>
+        {user ? (
+          <Link
+            className="site-header-icon"
+            to="/notifications"
+            aria-label="Notifications"
+          >
+            <NotificationIcon />
+          </Link>
+        ) : null}
 
         {!user ? (
           <>
@@ -39,15 +41,15 @@ export default function SiteHeader() {
               Sign In
             </Link>
           </>
-        ) : null}
-
-        <Link
-          className="site-header-icon"
-          to={user ? (user.roles?.includes("ADMIN") ? "/dashboard" : "/resources") : "/signin"}
-          aria-label={user ? "My account" : "Sign in to access your account"}
-        >
-          <AccountIcon />
-        </Link>
+        ) : (
+          <Link
+            className="site-header-icon"
+            to={user.roles?.includes("ADMIN") ? "/dashboard" : "/resources"}
+            aria-label="My account"
+          >
+            <AccountIcon />
+          </Link>
+        )}
       </div>
     </header>
   );

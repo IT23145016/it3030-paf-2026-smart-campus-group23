@@ -1,6 +1,6 @@
 :root {
   color-scheme: light;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Plus Jakarta Sans", sans-serif;
   background:
     radial-gradient(circle at top left, rgba(167, 204, 233, 0.34), transparent 24%),
     radial-gradient(circle at 80% 8%, rgba(121, 168, 206, 0.2), transparent 18%),
@@ -36,16 +36,17 @@ a {
 
 button {
   border: 1px solid transparent;
-  border-radius: 18px;
-  padding: 0.88rem 1.2rem;
+  border-radius: 14px;
+  padding: 0.6rem 1rem;
   font: inherit;
+  font-size: 0.88rem;
   font-weight: 700;
   letter-spacing: 0.01em;
   background: linear-gradient(135deg, #112a43, #214c71);
   color: #f7fbff;
   cursor: pointer;
   box-shadow:
-    0 14px 28px rgba(17, 42, 67, 0.22),
+    0 8px 18px rgba(17, 42, 67, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.18);
   transition:
     transform 0.18s ease,
@@ -76,9 +77,10 @@ select,
 textarea {
   width: 100%;
   border: 1px solid rgba(53, 102, 141, 0.14);
-  border-radius: 16px;
-  padding: 0.8rem 0.95rem;
+  border-radius: 12px;
+  padding: 0.6rem 0.85rem;
   font: inherit;
+  font-size: 0.88rem;
   color: inherit;
   background: rgba(240, 247, 255, 0.96);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
@@ -498,7 +500,7 @@ p {
 .signin-provider-list {
   display: grid;
   gap: 0.7rem;
-  margin-top: 0.3rem;
+  margin-top: -0.3rem;
   width: min(100%, 360px);
 }
 
@@ -788,9 +790,9 @@ p {
 
 .landing-copy h1,
 .signin-panel h1 {
-  font-size: clamp(2.7rem, 6vw, 5.4rem);
-  line-height: 0.95;
-  letter-spacing: -0.04em;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
   margin-bottom: 0.15rem;
 }
 
@@ -911,8 +913,9 @@ p {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.95rem 1.2rem;
-  border-radius: 18px;
+  padding: 0.6rem 1rem;
+  border-radius: 14px;
+  font-size: 0.88rem;
   font-weight: 700;
   letter-spacing: 0.01em;
   transition:
@@ -988,8 +991,8 @@ p {
 .metric-card,
 .info-card,
 .feature-card {
-  border-radius: 22px;
-  padding: 1.1rem;
+  border-radius: 18px;
+  padding: 1rem;
 }
 
 .showcase-grid article,
@@ -1044,12 +1047,12 @@ p {
 .shell-topbar,
 .drawer,
 .panel {
-  padding: 1.5rem;
+  padding: 1.2rem;
 }
 
 .shell-topbar {
   display: grid;
-  grid-template-columns: 54px minmax(0, 1fr) 54px;
+  grid-template-columns: 46px minmax(0, 1fr) 46px;
   align-items: center;
   gap: 1rem;
 }
@@ -1077,8 +1080,8 @@ p {
 }
 
 .shell-topbar-spacer {
-  width: 54px;
-  height: 54px;
+  width: 46px;
+  height: 46px;
 }
 
 .content {
@@ -1214,7 +1217,7 @@ p {
 
 .hero-card,
 .table-card {
-  padding: 1.5rem;
+  padding: 1.2rem;
 }
 
 .accent-card {
@@ -1331,11 +1334,11 @@ p {
 }
 
 .resource-chart-dot.maintenance {
-  background: #82afd4;
+  background: #e8a838;
 }
 
 .resource-chart-dot.out-of-service {
-  background: #2e628d;
+  background: #d95f4b;
 }
 
 .resource-chart-legend-item strong {

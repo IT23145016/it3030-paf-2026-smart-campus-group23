@@ -38,7 +38,7 @@ public class BookingService {
     this.notificationService = notificationService;
   }
 
-  public BookingResponse createBooking(String userId, BookingCreateRequest request) {
+  public BookingResponse createBooking(UserAccount currentUser, BookingCreateRequest request) {
     validateBookingRequest(request);
 
     CampusResource resource = resourceRepository.findById(request.getResourceId())
@@ -50,7 +50,7 @@ public class BookingService {
 
     Booking booking = new Booking(
       request.getResourceId(),
-      userId,
+      currentUser.getId(),
       request.getPurpose(),
       request.getAttendees(),
       request.getStartTime(),
@@ -58,6 +58,7 @@ public class BookingService {
     );
 
     booking = bookingRepository.save(booking);
+    notificationService.notifyAdminsNewBooking(booking, currentUser.getFullName() != null ? currentUser.getFullName() : currentUser.getEmail());
     return toResponse(booking);
   }
 
