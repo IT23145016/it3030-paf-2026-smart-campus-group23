@@ -5,9 +5,9 @@ import com.scoh.api.dto.AuthUserResponse;
 import com.scoh.api.dto.ForgotPasswordRequest;
 import com.scoh.api.dto.LocalLoginRequest;
 import com.scoh.api.dto.LocalRegisterRequest;
-import com.scoh.api.dto.ResetPasswordRequest;
 import com.scoh.api.dto.NotificationPreferencesResponse;
 import com.scoh.api.dto.NotificationPreferencesUpdateRequest;
+import com.scoh.api.dto.ResetPasswordRequest;
 import com.scoh.api.exception.ForbiddenOperationException;
 import com.scoh.api.security.AppUserPrincipal;
 import com.scoh.api.security.SecurityUtils;
@@ -24,6 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,14 +45,22 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, String> register(@Valid @RequestBody LocalRegisterRequest request) {
+    public ResponseEntity<Map<String, String>> register(@Valid @RequestBody LocalRegisterRequest request) {
         userAccountService.registerLocalUser(request);
-        return Map.of("message", "Account created successfully. Please sign in.");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .cacheControl(CacheControl.noStore())
+                .body(Map.of("message", "Account created successfully. Please sign in."));
     }
 
     @PostMapping("/login")
-    public AuthUserResponse login(
+    public ResponseEntity<AuthUserResponse> login(
+            @Valid @RequestBody LocalLoginRequest request,
+            HttpServletRequest httpRequest) {
+        return createSession(request, httpRequest);
+    }
+
+    @PostMapping("/session")
+    public ResponseEntity<AuthUserResponse> createSession(
             @Valid @RequestBody LocalLoginRequest request,
             HttpServletRequest httpRequest) {
 
@@ -67,45 +76,52 @@ public class AuthController {
                 HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                 SecurityContextHolder.getContext());
 
-        return new AuthUserResponse(
-                user.getId(),
-                user.getEmail(),
-                user.getFullName(),
-                user.getAvatarUrl(),
-                user.getRoles(),
-                userAccountService.toNotificationPreferences(user));
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(toAuthUserResponse(user));
     }
 
     @PostMapping("/forgot-password")
-    @ResponseStatus(HttpStatus.OK)
-    public Map<String, String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         passwordResetService.sendOtp(request.email());
-        return Map.of("message", "OTP sent to your email address.");
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(Map.of("message", "OTP sent to your email address."));
     }
 
     @PostMapping("/reset-password")
-    @ResponseStatus(HttpStatus.OK)
-    public Map<String, String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         passwordResetService.resetPassword(request.email(), request.otp(), request.newPassword());
-        return Map.of("message", "Password reset successfully. Please sign in.");
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(Map.of("message", "Password reset successfully. Please sign in."));
     }
 
     @GetMapping("/me")
     public ResponseEntity<AuthUserResponse> me() {
+        return currentSession();
+    }
+
+    @GetMapping("/session")
+    public ResponseEntity<AuthUserResponse> currentSession() {
         UserAccount sessionUser = SecurityUtils.currentUser();
         UserAccount user = userAccountService.findById(sessionUser.getId());
         if (!user.isActive()) {
             throw new ForbiddenOperationException("Your account has been deactivated by an administrator.");
         }
         return ResponseEntity.ok()
-                .cacheControl(CacheControl.noCache().mustRevalidate())
-                .body(new AuthUserResponse(
-                        user.getId(),
-                        user.getEmail(),
-                        user.getFullName(),
-                        user.getAvatarUrl(),
-                        user.getRoles(),
-                        userAccountService.toNotificationPreferences(user)));
+                .cacheControl(CacheControl.noStore())
+                .body(toAuthUserResponse(user));
+    }
+
+    @DeleteMapping("/session")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteSession(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        SecurityContextHolder.clearContext();
     }
 
     @PatchMapping("/notification-preferences")
@@ -113,5 +129,15 @@ public class AuthController {
             @Valid @RequestBody NotificationPreferencesUpdateRequest request) {
         UserAccount sessionUser = SecurityUtils.currentUser();
         return userAccountService.updateNotificationPreferences(sessionUser.getId(), request);
+    }
+
+    private AuthUserResponse toAuthUserResponse(UserAccount user) {
+        return new AuthUserResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getFullName(),
+                user.getAvatarUrl(),
+                user.getRoles(),
+                userAccountService.toNotificationPreferences(user));
     }
 }
