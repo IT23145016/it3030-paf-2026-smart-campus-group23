@@ -181,7 +181,7 @@ export default function Shell({ title, children }) {
               My Bookings
             </Link>
           ) : null}
-          {user ? (
+          {user && !user.roles?.includes("ADMIN") ? (
             <Link to="/tickets" onClick={closeMenu}>
               Incident Tickets
             </Link>
