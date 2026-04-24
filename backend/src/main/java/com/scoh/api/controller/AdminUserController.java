@@ -1,18 +1,21 @@
 package com.scoh.api.controller;
 
 import com.scoh.api.dto.AdminUserCreateRequest;
+import com.scoh.api.dto.AdminUserUpdateRequest;
 import com.scoh.api.dto.RoleUpdateRequest;
 import com.scoh.api.dto.UserStatusUpdateRequest;
 import com.scoh.api.dto.UserSummaryResponse;
 import com.scoh.api.security.SecurityUtils;
 import com.scoh.api.service.UserAccountService;
 import jakarta.validation.Valid;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,9 +45,13 @@ public class AdminUserController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public UserSummaryResponse createUser(@Valid @RequestBody AdminUserCreateRequest request) {
-        return userAccountService.createUser(request, SecurityUtils.currentUser().getId());
+    public ResponseEntity<UserSummaryResponse> createUser(@Valid @RequestBody AdminUserCreateRequest request) {
+        UserSummaryResponse createdUser = userAccountService.createUser(request, SecurityUtils.currentUser().getId());
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{userId}")
+                .buildAndExpand(createdUser.id())
+                .toUri();
+        return ResponseEntity.created(location).body(createdUser);
     }
 
     @PutMapping("/{userId}/roles")
@@ -57,6 +64,13 @@ public class AdminUserController {
             @PathVariable String userId,
             @Valid @RequestBody UserStatusUpdateRequest request) {
         return userAccountService.updateUserStatus(userId, request, SecurityUtils.currentUser().getId());
+    }
+
+    @PatchMapping("/{userId}")
+    public UserSummaryResponse patchUser(
+            @PathVariable String userId,
+            @RequestBody AdminUserUpdateRequest request) {
+        return userAccountService.patchUser(userId, request, SecurityUtils.currentUser().getId());
     }
 
     @DeleteMapping("/{userId}")

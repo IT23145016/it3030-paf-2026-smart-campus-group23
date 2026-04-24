@@ -3,6 +3,7 @@ package com.scoh.api.service;
 import com.scoh.api.domain.Role;
 import com.scoh.api.domain.UserAccount;
 import com.scoh.api.dto.AdminUserCreateRequest;
+import com.scoh.api.dto.AdminUserUpdateRequest;
 import com.scoh.api.dto.LocalLoginRequest;
 import com.scoh.api.dto.LocalRegisterRequest;
 import com.scoh.api.dto.NotificationPreferencesResponse;
@@ -133,6 +134,27 @@ public class UserAccountService {
         }
 
         target.setActive(Boolean.TRUE.equals(request.active()));
+        UserAccount saved = userAccountRepository.save(target);
+        return toSummary(saved);
+    }
+
+    public UserSummaryResponse patchUser(String targetUserId, AdminUserUpdateRequest request, String actingUserId) {
+        UserAccount target = findById(targetUserId);
+
+        if (request.roles() != null) {
+            if (target.getId().equals(actingUserId) && !request.roles().contains(Role.ADMIN)) {
+                throw new ForbiddenOperationException("Admins cannot remove their own ADMIN role.");
+            }
+            target.setRoles(request.roles());
+        }
+
+        if (request.active() != null) {
+            if (target.getId().equals(actingUserId) && !request.active()) {
+                throw new ForbiddenOperationException("Admins cannot deactivate their own account.");
+            }
+            target.setActive(request.active());
+        }
+
         UserAccount saved = userAccountRepository.save(target);
         return toSummary(saved);
     }

@@ -128,14 +128,22 @@ public class NotificationService {
     }
 
     public NotificationResponse markAsRead(String notificationId, String userId) {
-        Notification notification = findOwnedNotification(notificationId, userId);
-        notification.setRead(true);
-        return toResponse(notificationRepository.save(notification));
+        return updateReadStatus(notificationId, userId, true);
     }
 
     public void markAllAsRead(String userId) {
+        updateAllReadStatus(userId, true);
+    }
+
+    public NotificationResponse updateReadStatus(String notificationId, String userId, boolean read) {
+        Notification notification = findOwnedNotification(notificationId, userId);
+        notification.setRead(read);
+        return toResponse(notificationRepository.save(notification));
+    }
+
+    public void updateAllReadStatus(String userId, boolean read) {
         List<Notification> notifications = notificationRepository.findByRecipientUserIdOrderByCreatedAtDesc(userId);
-        notifications.forEach(notification -> notification.setRead(true));
+        notifications.forEach(notification -> notification.setRead(read));
         notificationRepository.saveAll(notifications);
     }
 
