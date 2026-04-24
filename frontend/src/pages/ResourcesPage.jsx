@@ -277,14 +277,16 @@ export default function ResourcesPage() {
               ) : null}
 
               {/* Action */}
-              <button
-                type="button"
-                onClick={() => resource.status === "ACTIVE" && user ? openBooking(resource) : null}
-                disabled={resource.status !== "ACTIVE" || !user}
-                style={{ width: "100%", borderRadius: "12px", padding: "0.75rem", fontSize: "0.9rem" }}
-              >
-                {!user ? "Sign in to book" : resource.status === "ACTIVE" ? "Request Booking" : "Unavailable"}
-              </button>
+              {!user?.roles?.includes("ADMIN") ? (
+                <button
+                  type="button"
+                  onClick={() => resource.status === "ACTIVE" && user ? openBooking(resource) : null}
+                  disabled={resource.status !== "ACTIVE" || !user}
+                  style={{ width: "100%", borderRadius: "12px", padding: "0.75rem", fontSize: "0.9rem" }}
+                >
+                  {!user ? "Sign in to book" : resource.status === "ACTIVE" ? "Request Booking" : "Unavailable"}
+                </button>
+              ) : null}
             </article>
           ))}
         </section>

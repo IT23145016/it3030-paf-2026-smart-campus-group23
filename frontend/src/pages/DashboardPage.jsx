@@ -58,7 +58,7 @@ export default function DashboardPage() {
   const outOfServiceDegrees = totalResources ? (outOfServiceResources / totalResources) * 360 : 0;
 
   return (
-    <Shell title="Operations Dashboard">
+    <Shell title="">
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "0.75rem" }}>
         <Link className="solid-link" to="/admin/bookings" style={{ justifyContent: "center" }}>Manage Bookings</Link>

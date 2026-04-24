@@ -131,13 +131,15 @@ export default function Shell({ title, children }) {
         </div>
       </div>
 
-      <header className="shell-topbar">
-        <div className="shell-topbar-spacer" aria-hidden="true" />
-        <div className="shell-title">
-          <h1>{title}</h1>
-        </div>
-        <div className="shell-topbar-spacer" aria-hidden="true" />
-      </header>
+      {title ? (
+        <header className="shell-topbar">
+          <div className="shell-topbar-spacer" aria-hidden="true" />
+          <div className="shell-title">
+            <h1>{title}</h1>
+          </div>
+          <div className="shell-topbar-spacer" aria-hidden="true" />
+        </header>
+      ) : null}
 
       {notificationAlert ? (
         <div className="global-notification-alert">
@@ -181,7 +183,7 @@ export default function Shell({ title, children }) {
               My Bookings
             </Link>
           ) : null}
-          {user ? (
+          {user && !user.roles?.includes("ADMIN") ? (
             <Link to="/tickets" onClick={closeMenu}>
               Incident Tickets
             </Link>
