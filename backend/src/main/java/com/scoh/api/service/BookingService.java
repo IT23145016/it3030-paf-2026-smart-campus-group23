@@ -1,9 +1,9 @@
 package com.scoh.api.service;
 
+import com.scoh.api.domain.AvailabilityWindow;
 import com.scoh.api.domain.Booking;
 import com.scoh.api.domain.BookingStatus;
 import com.scoh.api.domain.CampusResource;
-import com.scoh.api.domain.AvailabilityWindow;
 import com.scoh.api.domain.Role;
 import com.scoh.api.domain.UserAccount;
 import com.scoh.api.dto.BookingCreateRequest;
@@ -13,14 +13,14 @@ import com.scoh.api.exception.BookingConflictException;
 import com.scoh.api.exception.ForbiddenOperationException;
 import com.scoh.api.repository.BookingRepository;
 import com.scoh.api.repository.CampusResourceRepository;
-import org.springframework.stereotype.Service;
-
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
 
 @Service
 public class BookingService {
@@ -76,6 +76,7 @@ public class BookingService {
 
     return bookingRepository.findByUserIdAndStatus(userId, bookingStatus).stream()
       .sorted(Comparator.comparing(Booking::getUpdatedAt).reversed())
+      .map(this::prepareBookingForResponse)
       .map(this::toResponse)
       .collect(Collectors.toList());
   }
@@ -90,7 +91,6 @@ public class BookingService {
       bookings = bookingRepository.findByUserId(userId);
     }
 
-    // Apply date filtering if provided
     if (startDate != null && !startDate.isBlank() && endDate != null && !endDate.isBlank()) {
       try {
         LocalDateTime start = LocalDateTime.parse(startDate + "T00:00:00");
@@ -108,6 +108,7 @@ public class BookingService {
 
     return bookings.stream()
       .sorted(Comparator.comparing(Booking::getUpdatedAt).reversed())
+      .map(this::prepareBookingForResponse)
       .map(this::toResponse)
       .collect(Collectors.toList());
   }
@@ -115,6 +116,7 @@ public class BookingService {
   private List<BookingResponse> getUserBookingsInternal(String userId) {
     return bookingRepository.findByUserId(userId).stream()
       .sorted(Comparator.comparing(Booking::getUpdatedAt).reversed())
+      .map(this::prepareBookingForResponse)
       .map(this::toResponse)
       .collect(Collectors.toList());
   }
@@ -127,7 +129,7 @@ public class BookingService {
       throw new ForbiddenOperationException("You can only view your own bookings");
     }
 
-    return toResponse(booking);
+    return toResponse(prepareBookingForResponse(booking));
   }
 
   public List<BookingResponse> getAllBookings() {
@@ -181,6 +183,7 @@ public class BookingService {
 
     return bookings.stream()
       .sorted(Comparator.comparing(Booking::getUpdatedAt).reversed())
+      .map(this::prepareBookingForResponse)
       .map(this::toResponse)
       .collect(Collectors.toList());
   }
@@ -188,6 +191,7 @@ public class BookingService {
   public List<BookingResponse> getPendingBookings() {
     return bookingRepository.findByStatus(BookingStatus.PENDING).stream()
       .sorted(Comparator.comparing(Booking::getUpdatedAt).reversed())
+      .map(this::prepareBookingForResponse)
       .map(this::toResponse)
       .collect(Collectors.toList());
   }
@@ -217,11 +221,34 @@ public class BookingService {
 
     booking.setStatus(newStatus);
     booking.setAdminNotes(request.getAdminNotes());
+    if (newStatus == BookingStatus.APPROVED && (booking.getCheckInToken() == null || booking.getCheckInToken().isBlank())) {
+      booking.setCheckInToken(generateCheckInToken());
+    }
     booking.setUpdatedAt(LocalDateTime.now());
     booking = bookingRepository.save(booking);
 
     createStatusNotification(booking, newStatus);
-    return toResponse(booking);
+    return toResponse(prepareBookingForResponse(booking));
+  }
+
+  public BookingResponse verifyCheckInToken(String checkInToken) {
+    Booking booking = findBookingByCheckInToken(checkInToken);
+    validateCheckInAvailability(booking);
+    return toResponse(prepareBookingForResponse(booking));
+  }
+
+  public BookingResponse confirmCheckIn(String checkInToken, UserAccount currentUser) {
+    Booking booking = findBookingByCheckInToken(checkInToken);
+    validateCheckInAvailability(booking);
+
+    if (booking.getCheckedInAt() == null) {
+      booking.setCheckedInAt(LocalDateTime.now());
+      booking.setCheckedInBy(resolveCheckInActor(currentUser));
+      booking.setUpdatedAt(LocalDateTime.now());
+      booking = bookingRepository.save(booking);
+    }
+
+    return toResponse(prepareBookingForResponse(booking));
   }
 
   public BookingResponse cancelBooking(String bookingId, String userId) {
@@ -244,7 +271,7 @@ public class BookingService {
     booking.setUpdatedAt(LocalDateTime.now());
     booking = bookingRepository.save(booking);
 
-    return toResponse(booking);
+    return toResponse(prepareBookingForResponse(booking));
   }
 
   private void validateBookingRequest(BookingCreateRequest request) {
@@ -353,7 +380,46 @@ public class BookingService {
       booking.getStatus(),
       booking.getCreatedAt(),
       booking.getUpdatedAt(),
-      booking.getAdminNotes()
+      booking.getAdminNotes(),
+      booking.getCheckInToken(),
+      booking.getCheckedInAt(),
+      booking.getCheckedInBy()
     );
+  }
+
+  private Booking prepareBookingForResponse(Booking booking) {
+    if (booking.getStatus() == BookingStatus.APPROVED && (booking.getCheckInToken() == null || booking.getCheckInToken().isBlank())) {
+      booking.setCheckInToken(generateCheckInToken());
+      booking.setUpdatedAt(LocalDateTime.now());
+      return bookingRepository.save(booking);
+    }
+
+    return booking;
+  }
+
+  private Booking findBookingByCheckInToken(String checkInToken) {
+    if (checkInToken == null || checkInToken.isBlank()) {
+      throw new IllegalArgumentException("Check-in token is required");
+    }
+
+    return bookingRepository.findByCheckInToken(checkInToken)
+      .orElseThrow(() -> new IllegalArgumentException("Booking check-in token is invalid"));
+  }
+
+  private void validateCheckInAvailability(Booking booking) {
+    if (booking.getStatus() != BookingStatus.APPROVED) {
+      throw new IllegalArgumentException("Only approved bookings can be checked in");
+    }
+  }
+
+  private String resolveCheckInActor(UserAccount currentUser) {
+    if (currentUser.getFullName() != null && !currentUser.getFullName().isBlank()) {
+      return currentUser.getFullName();
+    }
+    return currentUser.getEmail();
+  }
+
+  private String generateCheckInToken() {
+    return UUID.randomUUID().toString();
   }
 }

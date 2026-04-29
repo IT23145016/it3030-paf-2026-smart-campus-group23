@@ -137,6 +137,33 @@ class BookingServiceTest {
 
         assertThat(response.getStatus()).isEqualTo(BookingStatus.APPROVED);
         assertThat(response.getAdminNotes()).isEqualTo("Approved for the lecture.");
+        assertThat(response.getCheckInToken()).isNotBlank();
+    }
+
+    @Test
+    void shouldConfirmCheckInForApprovedBooking() {
+        Booking booking = existingBooking("booking-1", "resource-1", "user-1", BookingStatus.APPROVED);
+        booking.setCheckInToken("qr-token-1");
+
+        when(bookingRepository.findByCheckInToken("qr-token-1")).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        BookingResponse response = bookingService.confirmCheckIn("qr-token-1", testUser("admin-1"));
+
+        assertThat(response.getCheckedInAt()).isNotNull();
+        assertThat(response.getCheckedInBy()).isEqualTo("Test User");
+    }
+
+    @Test
+    void shouldRejectCheckInForNonApprovedBooking() {
+        Booking booking = existingBooking("booking-1", "resource-1", "user-1", BookingStatus.CANCELLED);
+        booking.setCheckInToken("qr-token-2");
+
+        when(bookingRepository.findByCheckInToken("qr-token-2")).thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.verifyCheckInToken("qr-token-2"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Only approved bookings");
     }
 
     @Test

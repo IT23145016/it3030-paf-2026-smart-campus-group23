@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
+import QRCode from "qrcode";
 import { useSearchParams } from "react-router-dom";
 import Shell from "../components/Shell";
 import { api } from "../services/api";
@@ -17,6 +19,7 @@ export default function BookingsPage() {
     endDate: ""
   });
   const bookingRefs = useRef({});
+  const appOrigin = typeof window !== "undefined" ? window.location.origin : "";
 
   useEffect(() => {
     loadBookings(filters);
@@ -162,61 +165,70 @@ export default function BookingsPage() {
                     bookingRefs.current[booking.id] = element;
                   }}
                 >
-                  <div className="booking-row-main">
-                    <div className="booking-row-title">
-                      <div>
-                        <p className="eyebrow">Booking Request</p>
-                        <h4>{booking.resourceName || `Resource #${booking.resourceId}`}</h4>
+                  <div className="booking-card-layout">
+                    <div className="booking-card-primary">
+                      <div className="booking-row-main">
+                        <div className="booking-row-title">
+                          <div>
+                            <p className="eyebrow">Booking Request</p>
+                            <h4>{booking.resourceName || `Resource #${booking.resourceId}`}</h4>
+                          </div>
+                          <span className={`status-pill ${booking.status?.toLowerCase() || "pending"}`}>
+                            {booking.status || "PENDING"}
+                          </span>
+                        </div>
+                        <p className="booking-purpose">{booking.purpose}</p>
                       </div>
-                      <span className={`status-pill ${booking.status?.toLowerCase() || "pending"}`}>
-                        {booking.status || "PENDING"}
-                      </span>
-                    </div>
-                    <p className="booking-purpose">{booking.purpose}</p>
-                  </div>
 
-                  <div className="booking-meta-grid">
-                    <div className="booking-meta-item">
-                      <span>Attendees</span>
-                      <strong>{booking.attendees}</strong>
-                    </div>
-                    <div className="booking-meta-item">
-                      <span>Start</span>
-                      <strong>{new Date(booking.startTime).toLocaleString()}</strong>
-                    </div>
-                    <div className="booking-meta-item">
-                      <span>End</span>
-                      <strong>{new Date(booking.endTime).toLocaleString()}</strong>
-                    </div>
-                    <div className="booking-meta-item">
-                      <span>Reference</span>
-                      <strong>{booking.id}</strong>
-                    </div>
-                  </div>
+                      <div className="booking-meta-grid">
+                        <div className="booking-meta-item">
+                          <span>Attendees</span>
+                          <strong>{booking.attendees}</strong>
+                        </div>
+                        <div className="booking-meta-item">
+                          <span>Start</span>
+                          <strong>{new Date(booking.startTime).toLocaleString()}</strong>
+                        </div>
+                        <div className="booking-meta-item">
+                          <span>End</span>
+                          <strong>{new Date(booking.endTime).toLocaleString()}</strong>
+                        </div>
+                        <div className="booking-meta-item">
+                          <span>Reference</span>
+                          <strong>{booking.id}</strong>
+                        </div>
+                      </div>
 
-                  {booking.adminNotes ? (
-                    <div className="booking-note-block">
-                      <span>Admin Notes</span>
-                      <p>{booking.adminNotes}</p>
-                    </div>
-                  ) : null}
+                      {booking.adminNotes ? (
+                        <div className="booking-note-block">
+                          <span>Admin Notes</span>
+                          <p>{booking.adminNotes}</p>
+                        </div>
+                      ) : null}
 
-                  <div className="booking-row-actions">
-                    {booking.status === "APPROVED" || booking.status === "PENDING" ? (
-                      <button
-                        type="button"
-                        className="secondary-button"
-                        onClick={() => cancelBooking(booking.id)}
-                        disabled={cancellingBooking === booking.id}
-                      >
-                        {cancellingBooking === booking.id ? "Cancelling..." : "Cancel Booking"}
-                      </button>
-                    ) : (
-                      <span className="status-note">
-                        {booking.status === "REJECTED" ? "Booking was rejected" :
-                         booking.status === "CANCELLED" ? "Booking cancelled" : "No actions available"}
-                      </span>
-                    )}
+                      <div className="booking-row-actions">
+                        {((booking.status === "APPROVED" && !booking.checkedInAt) || booking.status === "PENDING") ? (
+                          <button
+                            type="button"
+                            className="secondary-button"
+                            onClick={() => cancelBooking(booking.id)}
+                            disabled={cancellingBooking === booking.id}
+                          >
+                            {cancellingBooking === booking.id ? "Cancelling..." : "Cancel Booking"}
+                          </button>
+                        ) : (
+                          <span className="status-note">
+                            {booking.status === "REJECTED" ? "Booking was rejected" :
+                             booking.status === "CANCELLED" ? "Booking cancelled" :
+                             booking.checkedInAt ? "Booking has been checked in" : "No actions available"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {booking.status === "APPROVED" ? (
+                      <BookingQrCard booking={booking} appOrigin={appOrigin} />
+                    ) : null}
                   </div>
                 </article>
               ))}
@@ -225,5 +237,87 @@ export default function BookingsPage() {
         </section>
       </section>
     </Shell>
+  );
+}
+
+function BookingQrCard({ booking, appOrigin }) {
+  const [downloading, setDownloading] = useState(false);
+
+  if (!booking.checkInToken) {
+    return (
+      <aside className="booking-qr-card">
+        <p className="eyebrow">Check-In QR</p>
+        <div className="booking-qr-placeholder">
+          QR is being prepared for this approved booking.
+        </div>
+        <p className="booking-qr-copy">
+          Refresh this page in a moment. If it still does not appear, the booking may need to be reopened from the approval flow.
+        </p>
+      </aside>
+    );
+  }
+
+  const verificationUrl = `${appOrigin}/bookings/check-in?token=${encodeURIComponent(booking.checkInToken)}`;
+
+  async function downloadQrCode() {
+    setDownloading(true);
+    try {
+      const qrDataUrl = await QRCode.toDataURL(verificationUrl, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#173f61',
+          light: '#ffffff'
+        }
+      });
+
+      const link = document.createElement('a');
+      link.href = qrDataUrl;
+      link.download = `booking-${booking.id}-qr.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Failed to generate QR code:', error);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  return (
+    <aside className="booking-qr-card">
+      <p className="eyebrow">Check-In QR</p>
+      <div className="booking-qr-image" aria-label={`QR code for booking ${booking.id}`}>
+        <QRCodeSVG
+          value={verificationUrl}
+          size={220}
+          level="M"
+          includeMargin
+          bgColor="#ffffff"
+          fgColor="#173f61"
+        />
+      </div>
+      <p className="booking-qr-copy">
+        Scan this code with a staff account to open the verification screen for this approved booking.
+      </p>
+      <div className="booking-qr-meta">
+        <span>Token</span>
+        <strong>{booking.checkInToken}</strong>
+      </div>
+      {booking.checkedInAt ? (
+        <div className="booking-qr-meta booking-qr-success">
+          <span>Checked In</span>
+          <strong>{new Date(booking.checkedInAt).toLocaleString()}</strong>
+        </div>
+      ) : null}
+      <button
+        type="button"
+        className="booking-qr-download"
+        onClick={downloadQrCode}
+        disabled={downloading}
+      >
+        {downloading ? "Generating..." : "Download QR Code"}
+      </button>
+    </aside>
   );
 }
