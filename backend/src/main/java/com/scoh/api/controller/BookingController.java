@@ -83,5 +83,20 @@ public class BookingController {
     BookingResponse response = bookingService.updateBookingStatus(bookingId, request);
     return ResponseEntity.ok(response);
   }
+
+  @GetMapping("/check-in/verify")
+  @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")
+  public ResponseEntity<BookingResponse> verifyCheckIn(@RequestParam String token) {
+    BookingResponse response = bookingService.verifyCheckInToken(token);
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/check-in/confirm")
+  @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")
+  public ResponseEntity<BookingResponse> confirmCheckIn(@RequestParam String token) {
+    UserAccount user = SecurityUtils.currentUser();
+    BookingResponse response = bookingService.confirmCheckIn(token, user);
+    return ResponseEntity.ok(response);
+  }
 }
 

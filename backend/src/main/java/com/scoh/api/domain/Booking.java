@@ -18,6 +18,9 @@ public class Booking {
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
   private String adminNotes;
+  private String checkInToken;
+  private LocalDateTime checkedInAt;
+  private String checkedInBy;
 
   public Booking() {}
 
@@ -119,5 +122,29 @@ public class Booking {
 
   public void setAdminNotes(String adminNotes) {
     this.adminNotes = adminNotes;
+  }
+
+  public String getCheckInToken() {
+    return checkInToken;
+  }
+
+  public void setCheckInToken(String checkInToken) {
+    this.checkInToken = checkInToken;
+  }
+
+  public LocalDateTime getCheckedInAt() {
+    return checkedInAt;
+  }
+
+  public void setCheckedInAt(LocalDateTime checkedInAt) {
+    this.checkedInAt = checkedInAt;
+  }
+
+  public String getCheckedInBy() {
+    return checkedInBy;
+  }
+
+  public void setCheckedInBy(String checkedInBy) {
+    this.checkedInBy = checkedInBy;
   }
 }

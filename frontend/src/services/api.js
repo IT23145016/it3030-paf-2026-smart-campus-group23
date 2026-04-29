@@ -94,6 +94,8 @@ export const api = {
   },
   getPendingBookings: () => request("/api/bookings/admin/pending"),
   updateBookingStatus: (bookingId, payload) => request(`/api/bookings/admin/${bookingId}/status`, { method: "PATCH", body: JSON.stringify(payload) }),
+  verifyBookingCheckIn: (token) => request(`/api/bookings/check-in/verify?token=${encodeURIComponent(token)}`),
+  confirmBookingCheckIn: (token) => request(`/api/bookings/check-in/confirm?token=${encodeURIComponent(token)}`, { method: "POST" }),
   getTickets: (filters = {}) => {
     const params = new URLSearchParams();
     if (filters.status && filters.status !== "all") params.set("status", filters.status);

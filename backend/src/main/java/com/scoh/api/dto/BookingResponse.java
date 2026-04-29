@@ -15,10 +15,13 @@ public class BookingResponse {
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
   private String adminNotes;
+  private String checkInToken;
+  private LocalDateTime checkedInAt;
+  private String checkedInBy;
 
   public BookingResponse() {}
 
-  public BookingResponse(String id, String resourceId, String userId, String purpose, Integer attendees, LocalDateTime startTime, LocalDateTime endTime, BookingStatus status, LocalDateTime createdAt, LocalDateTime updatedAt, String adminNotes) {
+  public BookingResponse(String id, String resourceId, String userId, String purpose, Integer attendees, LocalDateTime startTime, LocalDateTime endTime, BookingStatus status, LocalDateTime createdAt, LocalDateTime updatedAt, String adminNotes, String checkInToken, LocalDateTime checkedInAt, String checkedInBy) {
     this.id = id;
     this.resourceId = resourceId;
     this.userId = userId;
@@ -30,6 +33,9 @@ public class BookingResponse {
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     this.adminNotes = adminNotes;
+    this.checkInToken = checkInToken;
+    this.checkedInAt = checkedInAt;
+    this.checkedInBy = checkedInBy;
   }
 
   public String getId() {
@@ -118,5 +124,29 @@ public class BookingResponse {
 
   public void setAdminNotes(String adminNotes) {
     this.adminNotes = adminNotes;
+  }
+
+  public String getCheckInToken() {
+    return checkInToken;
+  }
+
+  public void setCheckInToken(String checkInToken) {
+    this.checkInToken = checkInToken;
+  }
+
+  public LocalDateTime getCheckedInAt() {
+    return checkedInAt;
+  }
+
+  public void setCheckedInAt(LocalDateTime checkedInAt) {
+    this.checkedInAt = checkedInAt;
+  }
+
+  public String getCheckedInBy() {
+    return checkedInBy;
+  }
+
+  public void setCheckedInBy(String checkedInBy) {
+    this.checkedInBy = checkedInBy;
   }
 }

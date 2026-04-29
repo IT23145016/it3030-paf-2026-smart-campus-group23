@@ -11,6 +11,7 @@ import ResourcesPage from "./pages/ResourcesPage";
 import ResourceAdminPage from "./pages/ResourceAdminPage";
 import BookingsPage from "./pages/BookingsPage";
 import AdminBookingsPage from "./pages/AdminBookingsPage";
+import BookingCheckInPage from "./pages/BookingCheckInPage";
 import TicketsPage from "./pages/TicketsPage";
 import TicketOperationsPage from "./pages/TicketOperationsPage";
 import NotificationsPage from "./pages/NotificationsPage";
@@ -105,6 +106,14 @@ export default function App() {
             <AdminRoute>
               <AdminBookingsPage />
             </AdminRoute>
+          }
+        />
+        <Route
+          path="/bookings/check-in"
+          element={
+            <OperationsRoute>
+              <BookingCheckInPage />
+            </OperationsRoute>
           }
         />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
