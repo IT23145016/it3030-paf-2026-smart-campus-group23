@@ -61,6 +61,8 @@ DELETE /api/resources/{resourceId}
 * Submit booking requests for resources
 * Prevent overlapping/conflicting bookings
 * Admin approval and rejection workflow
+* **QR code check-in system** for approved bookings
+* **Check-in verification** by admins/technicians
 * Track booking lifecycle:
 
   ```
@@ -75,6 +77,8 @@ POST   /api/bookings
 DELETE /api/bookings/{bookingId}
 GET    /api/bookings/admin
 PATCH  /api/bookings/admin/{bookingId}/status
+GET    /api/bookings/check-in/verify?token=xxx
+POST   /api/bookings/check-in/confirm?token=xxx
 ```
 
 ---
@@ -171,10 +175,12 @@ DELETE /api/admin/users/{userId}
 | ----------------- | -------------------------------- |
 | `/resources`      | View and manage campus resources |
 | `/bookings`       | Submit and track bookings        |
+| `/bookings/check-in` | QR code check-in verification    |
 | `/tickets`        | Create and view incident tickets |
 | `/tickets/manage` | Admin & technician dashboard     |
 | `/notifications`  | View alerts and updates          |
 | `/admin/users`    | Manage users and roles           |
+| `/admin/bookings` | Admin booking management         |
 
 ---
 
